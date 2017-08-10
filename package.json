@@ -1,0 +1,17 @@
+{
+  "name": "json-find",
+  "version": "1.0.0",
+  "description": "Searches a JSON document or JSON compatible object for a given key.",
+  "main": "json-find.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node ./test/test.js"
+  },
+  "keywords": [
+    "json"
+  ],
+  "author": "Ben Morin",
+  "license": "ISC"
+}
