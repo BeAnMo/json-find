@@ -12,13 +12,11 @@ The goal of the module is provide easy access to JSON or JSON-compatible* values
 
 ### API
 
-##### .checkKey
-    #JSON-FIND#.checkKey(Object, String) -> JSON or False
+##### .checkKey(Object, String) -> JSON or False
 
 Returns the value of a given Object at the specified key, false otherwise.
 
-##### .findValues
-    #JSON-FIND#.findValues(Object, ...String) -> Object
+##### .findValues(Object, ...String) -> Object
     
 Searches the given Object for each key given. If a given key exists in the Object, its key/value pair
 are copied to the resulting Object. If none are matched, an empty Object is returned.
