@@ -63,7 +63,7 @@ const TESTS = [
      
 function runActual(key){
     return function(json){
-        return jsf.valAtKey(json, key);
+        return jsf.checkKey(json, key);
     }
 }
 
