@@ -27,6 +27,7 @@ If given an Object with multiple identical keys, both procedures will return the
 
 #### Example
 
+```js    
     const jsf = require('json-find');
 
     const test = {
@@ -59,7 +60,7 @@ If given an Object with multiple identical keys, both procedures will return the
     
     // only test.d is found, not test.c[2].d
     jsf.findValues(test, 'd', 'e'); // { "d": 7, "e": 8 }
-    
+```
 
 For a better idea of real world applications consult the tests.
 
