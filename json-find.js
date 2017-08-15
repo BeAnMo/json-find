@@ -86,7 +86,7 @@ function findValues(toSearch, ...searchFor){
             return allKeys.forEach((key) => {
                 let val = toSearchObj[key];
 
-                if(searchForObj[key]){
+                if(searchForObj[key] && !results[key]){
                     return Object.assign(resultsObj, { [key]: val });
 
                 } else if(isObject(val)){
