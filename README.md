@@ -58,7 +58,7 @@ If given an Object with multiple identical keys, the value of the first matching
     jsf.findValues(test, 'a', 'd'); // { "a": 1, "d": { "e": 5 } }
     
     // a.c[2].d.e has already been retrieved,
-    // so the value first matching key encountered 
+    // so the value of the first matching key encountered 
     // by the search for "e" is 8
     jsf.findValues(test, 'd', 'e'); // { "d": { "e": 5 }, "e": 8 }
 ```
