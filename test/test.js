@@ -72,11 +72,17 @@ const TESTS = [
         expected: {"version": "0.6"}, // value is '91281096'
         msg: MESSAGE('version')
     },
-    {
+    { // retrieves first values only
         test: 'deepStrictEqual',
         actual: runActual('findValues', 'title', 'teaser'),
         expected: {"title": {"$text": "Stories from NPR"}, "teaser": {"$text": "Assorted stories from NPR"}},
         msg: MESSAGE('title & teaser')
+    },
+    { // $text was already retrieved by 'title', so first $text encountered is nested in 'teaser'
+        test: 'deepStrictEqual',
+        actual: runActual('findValues', 'title', '$text'),
+        expected: {"title": {"$text": "Stories from NPR"}, "$text": "Assorted stories from NPR"},
+        msg: MESSAGE('title & $text')
     },
     {
         test: 'deepStrictEqual',

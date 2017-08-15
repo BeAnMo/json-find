@@ -53,12 +53,14 @@ If given an Object with multiple identical keys, the value of the first matching
     jsf.checkKey(test.c[2].f, 'e'); // 8
     
     jsf.findValues(test, 'z');      // {}
-    jsf.findValues(test, 'z', 'd'); // { "d": 7 }
-    jsf.findValues(test, 'a', 'd'); // { "a": 1, "d": 7 }
-    jsf.findValues(test, 'a', 'd'); // { "a": 1, "d": 7 }
+    jsf.findValues(test, 'z', 'd'); // { "d": { "e": 5 } }
+    jsf.findValues(test, 'a', 'd'); // { "a": 1, "d": { "e": 5 } }
+    jsf.findValues(test, 'a', 'd'); // { "a": 1, "d": { "e": 5 } }
     
-    // only test.d is found, not test.c[2].d
-    jsf.findValues(test, 'd', 'e'); // { "d": 7, "e": 8 }
+    // a.c[2].d.e has already been retrieved,
+    // so the value first matching key encountered 
+    // by the search for "e" is 8
+    jsf.findValues(test, 'd', 'e'); // { "d": { "e": 5 }, "e": 8 }
 ```
 
 For a better idea of real world applications consult the tests.

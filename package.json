@@ -1,6 +1,6 @@
 {
   "name": "json-find",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Searches a JSON document or JSON compatible object for a given key.",
   "main": "json-find.js",
   "directories": {
