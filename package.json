@@ -2,6 +2,7 @@
   "name": "json-find",
   "version": "1.0.3",
   "description": "Searches a JSON document or JSON compatible object for a given key.",
+  "repository": "beanmo/json-find",
   "main": "json-find.js",
   "directories": {
     "test": "test"
