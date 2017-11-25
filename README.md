@@ -43,7 +43,7 @@ If passed invalid JSON, JsonData will throw an error. If passed a Number/String/
 
 ---
 
-#### .checkKey(Object, String) -> JSON or False
+#### #.checkKey(Object, String) -> JSON or False
 
 Performs a depth-first search for the given key and returns its value, otherwise false.
 
@@ -104,19 +104,38 @@ After the new keys parameter, an arbitrary number of ```Paths``` maybe passed. I
     const doc = JsonFind(test);
 
     doc.extractPaths(false, ['b', 3, 'c']); // { c: 5 }
-    doc.extractPaths(['f is', 'h is', 'j is'], ['f'], ['g', 'h'], ['g', 'i', 0, 'j']);
+    doc.extractPaths(
+        ['f is', 'h is', 'j is'], // new keys to be assigned 
+        ['f'],                    // paths given
+        ['g', 'h'], 
+        ['g', 'i', 0, 'j']
+    );
     // { 'f is': 'six', 'h is': 'eight', 'j is': 'ten' } 
 
     /* more Paths than keys */
-    doc.extractPaths(['a', 'b'], ['b', 0, 'c'], ['b', 1, 'c'], ['b', 2, 'c']);
+    doc.extractPaths(
+        ['a', 'b'], 
+        ['b', 0, 'c'], 
+        ['b', 1, 'c'], 
+        ['b', 2, 'c']
+    );
     // { a: 2, b: 3, c: 4 }
 
     /* same key reused */
-    doc.extractPaths(false, ['b', 0, 'c'], ['b', 1, 'c'], ['b', 2, 'c']); 
+    doc.extractPaths(
+        false, 
+        ['b', 0, 'c'], 
+        ['b', 1, 'c'], 
+        ['b', 2, 'c']
+    ); 
     // { c: 2, "c+1": 3, "c+2": 4 }
 
     /* more keys than Paths */
-    doc.extractPaths(['a', 'b', 'c'], ['f'], ['g', 'i']);
+    doc.extractPaths(
+        ['a', 'b', 'c'], 
+        ['f'], 
+        ['g', 'i']
+    );
     // { a: 'six', b: { h: 'eight', i: [{ j: 'ten' }] }, c: null }
 
     /* accessing all items in an Array */
