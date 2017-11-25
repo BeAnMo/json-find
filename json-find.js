@@ -140,20 +140,16 @@ function reduceJSON(accum, json, fn, searchFor){
 
 /* Object, Array-of-String, ...Array-of-String -> Object 
     extracts values from an object from multiples paths: 
-    [...String] 
-    assumes newKeys.length === paths.length or newKeys is false */
+    a Path is [...String] 
+    assumes newKeys is false or [...String] */
 function extractPaths(obj, newKeys, ...paths){
     const nkLen = newKeys.length;
     const pLen = paths.length;
     
     const curried = curry(assignKeysAtPaths, obj, newKeys, paths);
 
-    if(nkLen > pLen){
-        return curried(nkLen);
-
-    } else {
-        return curried(pLen);
-    }
+    return nkLen > pLen ?
+        curried(nkLen) : curried(pLen);
 }
 
 
