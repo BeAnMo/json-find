@@ -1,4 +1,4 @@
-const jsf = require('../json-find'),
+const JSF = require('../json-find'),
       assert = require('assert'),
       path = require('path'),
       fs = require('fs');
@@ -14,6 +14,7 @@ test:
 
 const MESSAGE = (key) => `Test for ${key} failed`;  
 const TESTS = [
+    /* checkKey */
     { // first item in obj
         test: 'strictEqual',
         actual: runActual('checkKey', 'version'),
@@ -57,7 +58,7 @@ const TESTS = [
       // returns the value of the last key
         test: 'strictEqual',
         actual: runActual('checkKey', 'refId'),
-        expected: '91281102', // last key in object
+        expected: '91281093',// '91281102', // last key in object
         msg: MESSAGE('refId, last key')
     },
     {
@@ -66,6 +67,8 @@ const TESTS = [
         expected: undefined, // value is '91281096'
         msg: MESSAGE('refId, first key')
     },
+
+    /* findValues */
     {
         test: 'deepStrictEqual',
         actual: runActual('findValues', 'version'),
@@ -98,32 +101,86 @@ const TESTS = [
                           {"type": "api",
                            "$text": "http://api.npr.org/query?id=91280049"}], "subtitle": {}},
         msg: MESSAGE('link & subtitle')
-    }
+    },
+
+    /* extractPaths */
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', false, ['version']),
+        expected: {'version': '0.6'},
+        msg: MESSAGE('extractPaths: ["version"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', 'v', ['version']),
+        expected: {'v': '0.6'},
+        msg: MESSAGE('extractPaths: ["version"] -> ["v"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', ['v', 'c'], ['version']),
+        expected: { v: '0.6', c: null },
+        msg: MESSAGE('extractPaths: ["version"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', false, ['version']),
+        expected: { version: '0.6'},
+        msg: MESSAGE('extractPaths: ["version"] no keys')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', ['v'], ['version'], ['list', 'title']),
+        expected: { v: '0.6', title: {"$text": "Stories from NPR"} },
+        msg: MESSAGE('extractPaths: ["version"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', ['storyId'], ['list', 'story', 0, 'id']),
+        expected: { storyId: '91280049'},
+        msg: MESSAGE('extractPaths: ["storyId"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', false, ['list', 'story', 0, 'parent', 0, 'link', 0, 'type'],
+        ['list', 'story', 0, 'parent', 0, 'link', 1, 'type']),
+        expected: { 'type': 'html', 'type+1': 'api'},
+        msg: MESSAGE('extractPaths: ["storyId"]')
+    },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('extractPaths', ['sluggo', 'teasering'], ['list', 'story', 0, 'slug'],
+        ['list', 'story', 0, 'teaser']),
+        expected: { 'sluggo': {"$text": "Interviews"}, 
+        'teasering': {"$text": "Scott Simon talks with boxing promoter Don King and boxing hall of famer Larry Holmes about their new video game, <em>Don King Presents: Prizefighter</em>, with story lines, in and out of the ring."}},
+        msg: MESSAGE('extractPaths: ["storyId"]')
+    },
 ]
      
-     
+
+/* JsonData, ...String -> JSON or False */
 function runActual(method, ...keys){
-    return function(json){
+    return function(jsonData){
         if(method === 'checkKey'){
-            return jsf[method](json, keys[0]);
+            return jsonData[method](keys[0]);
         } else {
-            return jsf[method](json, ...keys);
+            return jsonData[method](...keys);
         }
     }
 }
 
 function runTests(json){
+    const jsonData = JSF(json);
     const len = TESTS.length;
     let passed = 0;
     
     TESTS.forEach((T) => { 
-        let tested = assert[T.test](T.actual(json), T.expected, T.msg);
+        let tested = assert[T.test](T.actual(jsonData), T.expected, T.msg);
         
         if(tested === undefined){
             passed++
         }
     });
-    
     return console.log(`${len - passed} tests failed out of ${len}`);
 }
 
