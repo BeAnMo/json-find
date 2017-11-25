@@ -37,8 +37,8 @@ const JSON_DATA = Object.create({}, {
 
 
 /*** Constructor *** 
-    JsonData will return Atoms as is, Arrays & Objects are
-    converted to JsonData Object */
+    JsonFind will return Atoms as is, Arrays & Objects are
+    converted to JsonFind Object */
 function JsonFind(doc){
     const possibleJson = JSON.stringify(doc);
     
@@ -122,7 +122,6 @@ function reduceJSON(accum, json, fn, searchFor){
         return fn(accum, json[searchFor]);
         
     } else if(isAtom(json)){
-        //return fn(accum, json);
         return accum;
         
     } else if(isArray(json)){
@@ -146,17 +145,14 @@ function reduceJSON(accum, json, fn, searchFor){
 function extractPaths(obj, newKeys, ...paths){
     const nkLen = newKeys.length;
     const pLen = paths.length;
+    
+    const curried = curry(assignKeysAtPaths, obj, newKeys, paths);
 
     if(nkLen > pLen){
-        //throw new Error('extractPaths: too many new keys');
-        return assignKeysAtPaths(obj, newKeys, paths, nkLen);
-
-    } else if(nkLen < pLen){
-        //throw new Error('extractPaths: too many paths');
-        return assignKeysAtPaths(obj, newKeys, paths, pLen);
+        return curried(nkLen);
 
     } else {
-        return assignKeysAtPaths(obj, newKeys, paths, pLen);
+        return curried(pLen);
     }
 }
 
@@ -169,25 +165,31 @@ function assignKeysAtPaths(obj, newKeys, paths, loopLen){
     
     for(let i = 0; i < loopLen; i++){
         // allows for unequal newKeys/paths lengths
-        const iPath = paths[i] ? paths[i] : null;
-        const iNewKey = newKeys[i] ? newKeys[i] : paths[i].slice(-1);
+        const iPath = paths[i] ? 
+            paths[i] : null;
+        const iNewKey = newKeys[i] ? 
+            newKeys[i] : paths[i].slice(-1);
         
-        const objAtPath = iPath === null ? null : recurPath(obj, iPath);
-        const key = objAtPath ? Object.keys(objAtPath)[0] : null;
+        const objAtPath = iPath === null ? 
+            null : recurPath(obj, iPath);
+        const key = objAtPath ? 
+            Object.keys(objAtPath)[0] : null;
+
+        const curried = curry(Object.assign, result);
 
         // prevent same keys from overriding
         if(newKeys){
             if(objAtPath){
-                Object.assign(result, { [iNewKey]: objAtPath[key] });
+                curried({ [iNewKey]: objAtPath[key] });
             } else {
-                Object.assign(result, { [iNewKey]: objAtPath });
+                curried({ [iNewKey]: objAtPath });
             }
 
         } else if(key in result){
-            Object.assign(result, { [key + '+' + i]: objAtPath[key] });
+            curried({ [key + '+' + i]: objAtPath[key] });
         
         } else {
-            Object.assign(result, objAtPath);
+            curried(objAtPath);
         }
     }
 
@@ -204,6 +206,13 @@ function recurPath(obj, arr, lastKey=''){
         return { [lastKey]: obj };
     } else {
         return recurPath(obj[arr[0]], arr.slice(1), arr[0]);
+    }
+}
+
+/* [[...X -> Y], ...X -> [...Y -> Z]] -> Z */
+function curry(fn, ...firstArgs){
+    return function(...secondArgs){
+        return fn.apply(null, firstArgs.concat(secondArgs));
     }
 }
 
@@ -236,6 +245,6 @@ function isKey(json, searchFor){
     if(json === null){
         return false;
     } else {        
-        return isCompound(json) && searchFor && searchFor in json;
+        return isCompound(json) && searchFor in json;
     }  
 }
