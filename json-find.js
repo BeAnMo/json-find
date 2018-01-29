@@ -66,53 +66,54 @@ module.exports = JsonFind;
     searches through an object for all given keys,
     return an object of search keys & their values  */
 function findValues(toSearch, ...searchFor){
-    const results = {};
+    const searchesLen = searchFor.length;
+    let results = {};
+    let searches = {};
     
-    const searches = ((search) => {
-        let result = {};
-
-        search.forEach((s) => {
-            Object.assign(result, { [s]: true });
-        });
-
-        return result;
-    })(searchFor);
+    for(let i = 0; i < searchesLen; i++){
+        searches[searchFor[i]] = true;
+    }
     
-    const recur = ((resultsObj, toSearchObj, keys) => {
-        /* Object, Object -> Void */
-        function recurObj(toSearchObj, searchForObj){
-            const allKeys = Object.keys(toSearchObj);
-
-            return allKeys.forEach((key) => {
-                let val = toSearchObj[key];
-
-                if(searchForObj[key] && !results[key]){
-                    return Object.assign(resultsObj, { [key]: val });
-
-                } else if(isObject(val)){
-                    return recurObj(val, searchForObj);
-
-                } else if(isArray(val)){
-                    return recurArr(val, searchForObj);
-                }
-            });
-        }
-    
-        /* Array, Object -> Void */
-        function recurArr(arr, searchForObj){
-            return arr.forEach((item) => {
-                if(isArray(item)){
-                    return recurArr(item, searchForObj);
-
-                } else if(isObject(item)){
-                    return recurObj(item, searchForObj);
-                }
-            });
-        }
+ 
+    /* Object, Object -> Void */
+    function traverseObject(toSearchObj, searchForObj){
+        const allKeys = Object.keys(toSearchObj);
+        const len = allKeys.length;
         
-        return recurObj(toSearchObj, keys);
-    })(results, toSearch, searches);
+        for(let i = 0; i < len; i++){
+            const key = allKeys[i];
+            const val = toSearchObj[key];
+            
+            if(searchForObj[key] && !results[key]){
+                results[key] = val;
 
+            } else if(isObject(val)){
+                traverseObject(val, searchForObj);
+
+            } else if(isArray(val)){
+                traverseArray(val, searchForObj);
+            }
+        }
+    }
+
+    /* Array, Object -> Void */
+    function traverseArray(arr, searchForObj){
+        const len = arr.length;
+
+        for(let i = 0; i < len; i++){
+            const item = arr[i];
+
+            if(isArray(item)){
+                return traverseArray(item, searchForObj);
+
+            } else if(isObject(item)){
+                return traverseObject(item, searchForObj);
+            }
+        }
+    }
+        
+    traverseObject(toSearch, searches);
+    
     return results;
 }
 
@@ -230,7 +231,8 @@ function isObject(v){
 }
 
 function isNull(v){
-    return null === v ? "null" : v;
+    return null === v ? 
+        "null" : v;
 }
 
 function isCompound(v){
@@ -238,9 +240,6 @@ function isCompound(v){
 }
 
 function isKey(json, searchFor){
-    if(json === null){
-        return false;
-    } else {        
-        return isCompound(json) && searchFor in json;
-    }  
+    return json === null ?
+        false : isCompound(json) && searchFor in json;
 }
