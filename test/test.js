@@ -102,6 +102,12 @@ const TESTS = [
                            "$text": "http://api.npr.org/query?id=91280049"}], "subtitle": {}},
         msg: MESSAGE('link & subtitle')
     },
+    {
+        test: 'deepStrictEqual',
+        actual: runActual('findValues', 'type_TEST'),
+        expected: { type_TEST: "api" },
+        msg: MESSAGE('type inside of links')
+    },
 
     /* extractPaths */
     {

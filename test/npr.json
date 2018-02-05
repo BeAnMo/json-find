@@ -121,7 +121,7 @@
                                                                "caption": {"$text": "A Conversation with Don King"},
                                                                "link": [{"type": "html",
                                                                          "$text": "http://api.npr.org/templates/story/story.php?storyId=5132610&f=91280049&ft=3"},
-                                                                        {"type": "api",
+                                                                        {"type_TEST": "api",
                                                                          "$text": "http://api.npr.org/query?id=5132610"}],
                                                                 "displayDate": {"$text": "true"}
                                                                 },

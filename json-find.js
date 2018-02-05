@@ -104,10 +104,10 @@ function findValues(toSearch, ...searchFor){
             const item = arr[i];
 
             if(isArray(item)){
-                return traverseArray(item, searchForObj);
+                traverseArray(item, searchForObj);
 
             } else if(isObject(item)){
-                return traverseObject(item, searchForObj);
+                traverseObject(item, searchForObj);
             }
         }
     }
