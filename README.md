@@ -16,7 +16,10 @@ The goal of the module is provide easy access to JSON or JSON-compatible* values
 #### Instantiation
 
 ```js
+    /* CommonJS */
     const JsonFind = require('json-find');
+    /* ES6 import */
+    import JsonFind from 'json-find';
 
     const test = {
         "a": 1,
