@@ -1,13 +1,27 @@
-/* 
-    JSON-Find
-Small utility for searching through JSON or a JSON-compatible object for values at
-given keys.  
-*/
+/**
+ * JSON-Find
+ * @summary Small utility for searching through JSON or a JSON-compatible
+ * object for values at given keys.
+ * @license
+ * Copyright (c) 2017, Benjamin Morin
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
 'use strict';
 
-/**** JSON document ***
- "this" assumes an Object or Array */
+/**
+ * @description assumes "this" is JSON
+ * @interface JsonDoc
+ */
 var JSON_DATA = Object.create(null, {
   checkKey: {
     configurable: false,
@@ -41,9 +55,12 @@ var JSON_DATA = Object.create(null, {
   }
 });
 
-/*** Constructor *** 
-        JsonFind will return Atoms as is, Arrays & Objects are
-        converted to JsonFind Object */
+/** #### Constructor
+ * @description JsonFind will return Atoms as is, Arrays & Objects
+ * are converted to JsonFind Object
+ * @param {JSON} doc
+ */
+
 function JsonFind(doc) {
   if (isAtom(doc) || doc === null) {
     return doc;
@@ -62,13 +79,20 @@ JsonFind.prototype = JSON_DATA;
 
 module.exports = JsonFind;
 
-/***** JSON_DATA methods *****/
+/*** JSON_DATA methods ***/
+
 /**
- * json,
- * keys: [...String],
- * breakCond: String, X -> Boolean,
- * onKey: String, X -> Y,
- * done: ...
+ * @typedef {Object} Doc
+ * @typedef {[String]} Path
+ * @typedef {[Function, ...Object]} CurryArgs
+ */
+
+/** #### document traversal
+ * @param {Object} conf
+ *  - json: Object
+ *  - keys: ```[...String]```
+ *  - onKey: Function ```[String, X -> Y]```
+ *  - done: Function ```[Void -> X]```
  */
 function traverseJson(conf) {
   var json = conf.json;
@@ -76,7 +100,6 @@ function traverseJson(conf) {
   var onKey = conf.onKey;
   var done = conf.done;
 
-  var searchesLen = keys.length;
   var searches = {};
   var shouldBreak = false;
 
@@ -130,6 +153,11 @@ function traverseJson(conf) {
   return done();
 }
 
+/** @description returns the value of json at key,
+ * false otherwise
+ * @param {Doc} json
+ * @param {String} key
+ */
 function _checkKey(json, key) {
   var acc = false;
 
@@ -147,6 +175,10 @@ function _checkKey(json, key) {
   });
 }
 
+/** @description returns an object of json values at keys
+ * @param {Doc} json
+ * @param {Array} keys
+ */
 function _findValues(json, keys) {
   var L = keys.length;
   var notRetrieved = keys.slice(0);
@@ -172,10 +204,11 @@ function _findValues(json, keys) {
   });
 }
 
-/* Object, [...String]|False, [...[...String]] -> Object 
-        extracts values from an object from multiples paths: 
-        a Path is [...String] 
-        assumes newKeys is false or [...String] */
+/** @description Extracts the values from JSON at multiple Paths:
+ * @param {Doc} object
+ * @param {Array} newKeys [...String] | False
+ * @param {[Path]} paths
+ */
 function extractPaths(obj, newKeys, paths) {
   var nkLen = newKeys.length;
   var pLen = paths.length;
@@ -185,9 +218,12 @@ function extractPaths(obj, newKeys, paths) {
   return nkLen > pLen ? curried(nkLen) : curried(pLen);
 }
 
-/*** Helpers ***/
-
-/* JSON, [...String], [...[...String]], Number -> Object */
+/**
+ * @param {Doc} obj
+ * @param {Array} newKeys [...String]
+ * @param {[Path]} paths
+ * @param {Number} loopLen
+ */
 function assignKeysAtPaths(obj, newKeys, paths, loopLen) {
   var result = {};
 
@@ -201,7 +237,7 @@ function assignKeysAtPaths(obj, newKeys, paths, loopLen) {
 
     var curried = curry(Object.assign, result);
 
-    // prevent same keys from overriding
+    /* prevent same keys from overriding */
     if (newKeys) {
       if (objAtPath) {
         curried({ [iNewKey]: objAtPath[key] });
@@ -218,11 +254,10 @@ function assignKeysAtPaths(obj, newKeys, paths, loopLen) {
   return result;
 }
 
-/* Object, Array-of-String -> Object
-        retrieves the value of an object at the given path
-        returns { String-X: object }
-        where String-X is the key from the last index of 
-        the given array */
+/** @description retrieves the value of an object at the given Path
+ * @param {Doc} obj
+ * @param {Path} arr
+ */
 function recurPath(obj, arr, lastKey = '') {
   if (arr.length === 0) {
     return { [lastKey]: obj };
@@ -231,7 +266,10 @@ function recurPath(obj, arr, lastKey = '') {
   }
 }
 
-/* [[...X -> Y], ...X -> [...Y -> Z]] -> Z */
+/**
+ * @param {CurryArgs} args ```[...X -> [...Y -> Z]```, ...object
+ * @return {Function} ```[...Y -> Z]```
+ */
 function curry(args) {
   var _args = toArgs(arguments);
   var fn = _args[0];
