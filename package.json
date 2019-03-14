@@ -14,5 +14,8 @@
     "json"
   ],
   "author": "Ben Morin",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^24.5.0"
+  }
 }
