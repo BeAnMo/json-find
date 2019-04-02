@@ -1,4 +1,4 @@
-import flatFold from './index';
+import flatFold from './flatFold';
 import { TEST_DATA } from '../../test/npr';
 
 test('mimick Array.reduce', () => {

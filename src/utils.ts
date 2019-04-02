@@ -2,10 +2,7 @@ import { Json, Key } from './types';
 
 export function isAtom<T>(v: Json<T>): Boolean {
   return (
-    v === null ||
-    typeof v === 'boolean' ||
-    typeof v === 'number' ||
-    typeof v === 'string'
+    typeof v === 'boolean' || typeof v === 'number' || typeof v === 'string'
   );
 }
 
