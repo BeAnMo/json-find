@@ -1,5 +1,5 @@
 const JSF = require('../json-find');
-const DATA_0 = require('./npr.json');
+const DATA_0 = require('./npr.ts/index.js');
 
 const JF_0 = JSF(DATA_0);
 const JF_1 = JSF({ a: 1, b: 2, c: null, d: 4 });
