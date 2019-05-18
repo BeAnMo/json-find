@@ -24,12 +24,14 @@ current methods:
 
 planned methods:
 
-- findKeys(?): return an Object of accumulated values at the first instance of
-  each given key
 - flatFold: equivalent to Array.reduce, works on Arrays/Objects
 - deepFold: traverses entire doc depth-first
+
+(maybe a single fold function, let the user decided whether flat/deep)
+
 - findAll(?): find all occurences that hold when the given predicate is applied
 - rename(?): returns a new copy of the given doc, where certain fields have been
   renamed
 - flatten: flattens a nested structure to a flat Object whose keys are paths
 - count: count occurences of a given key or keys
+- removeCircular(?): removes circular references within a document
