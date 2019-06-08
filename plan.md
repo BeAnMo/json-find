@@ -10,28 +10,40 @@ planned instantiation:
 
 - pass doc to JsonFind
 - pass config to JsonFind
-  - delimiter: custom delim
-  - onlyJson: Boolean - can only be used on valid JSON
+  - delimiter: String (default ".") - custom delim
+  - onlyJson: Boolean (default True) - can only be used on valid JSON
     otherwise can work with circular structures (like the DOM)
-  -
+  - onlyPrimitive: Boolean (default True) - will only expose primitive values
+    in iterative methods
 
-current methods:
+legacy methods:
 
-- findValues: keep functionality but rename?
-- checkKey: remove
+- findValues: keep functionality but rename? (replaced with searchAll)
+- checkKey: remove (replaced w/ search, searchAll)
 - extractPaths: replace functionality w/ some ability to rename fields & retrieve at
   a given path
 
 planned methods:
 
-- flatFold: equivalent to Array.reduce, works on Arrays/Objects
-- deepFold: traverses entire doc depth-first
+- at: retrieves a new Doc at the given path, chainable
+  - allows for "\*" to denote all keys within an object
+- config: sets configuration
+- set: sets the value of a given key
+- get: gets the value
 
-(maybe a single fold function, let the user decided whether flat/deep)
+- fold: ~= Array.reduce, chainable
+- transform: ~= Array.map, chainable
+- prune: ~= Array.filter, chainable
+- each: ~= Array.forEach, chainable
+- andAll: ~= Array.every
+- orAll: ~= Array.some
+- search: ~= Array.find, chainable
+  - can pass predicate or a single key
+- searchAll: ~= Array.find, chainable (returns all items as array instead of single item), chainable
 
-- findAll(?): find all occurences that hold when the given predicate is applied
-- rename(?): returns a new copy of the given doc, where certain fields have been
-  renamed
-- flatten: flattens a nested structure to a flat Object whose keys are paths
-- count: count occurences of a given key or keys
-- removeCircular(?): removes circular references within a document
+  - can pass predicate or multiple keys
+
+- smoosh: flattens JSON structure to single level Object, chainable
+- count: return number of times given predicate holds true
+
+low level iterable for ES6+

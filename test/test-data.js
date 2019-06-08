@@ -1,4 +1,5 @@
 export const BASIC = { a: 1, b: 2, c: null, d: 4 };
+export const BASIC_ARR = [3, 4, [5, 6], [{ a: 7 }, { a: 8 }]];
 
 export const TEST_DATA = {
   version: '0.6',
