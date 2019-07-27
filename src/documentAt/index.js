@@ -3,19 +3,23 @@
  * at the path with val.
  *
  * @param {Object} doc
- * @param {[String]} path
+ * @param {[String|Number]} path
  * @param {Object} val
+ *
+ * @return {Object} the mutated original
  */
 export function setDoc(doc, path, val) {
   let cursor = doc;
   let index = 0;
 
-  while (path[index + 1]) {
+  while (path[index + 1] !== undefined) {
     const next = path[index];
 
-    // need to maintain arrays
     if (cursor[next] === undefined) {
-      cursor = cursor[next] = isNaN(next) ? {} : [];
+      // In order to determine the shape of the next cursor,
+      // this step needs to know whether the next path value is
+      // an array index or object key.
+      cursor = cursor[next] = isNaN(path[index + 1]) ? {} : [];
     } else {
       cursor = cursor[next];
     }
@@ -29,18 +33,22 @@ export function setDoc(doc, path, val) {
 }
 
 /**
- * @description Retrieves the value of the document
- * at the given path.
- *
- * @param {Object} doc
- * @param {[String]} path
+ * @param {Object} collection
+ * @param {[String]} splittedPath
  */
-export function getDoc(doc, path) {
-  let cursor = doc;
+export function getDoc(collection, splittedPath) {
+  let result = collection;
+  let index = 0;
 
-  for (const next of path) {
-    cursor = cursor[next];
+  while (splittedPath[index] !== undefined) {
+    result = result[splittedPath[index]];
+
+    if (result === undefined) {
+      return result;
+    }
+
+    index++;
   }
 
-  return cursor;
+  return result;
 }

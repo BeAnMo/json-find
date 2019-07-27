@@ -1,20 +1,25 @@
-import { getDoc, setDoc } from './documentAt';
+import { getDoc, setDoc } from '../documentAt';
+import primitive_bfs_gen from '../generators';
 
 const DOCUMENT = {
   [Symbol.iterator]() {
-    return fold_bf_gen(this, this.config.delimeter, this.config.onlyPrimitives);
+    return primitive_bfs_gen(this, this.config.delimeter);
   },
-
-  at(key, maybeUpdate = false) {
+  // getter & setter (set is chainable)
+  at(key, maybeValue = undefined) {
     const path = key.split(this.config.delimeter);
 
-    if (maybeUpdate !== undefined) {
-      return setDoc(this, path, maybeUpdate);
-    } else {
+    if (maybeValue === undefined) {
       return getDoc(this, path);
+    } else {
+      return setDoc(this, path, maybeValue);
     }
   },
-  // ~= Array.reduce
+
+  toString() {
+    return JSON.stringify(this);
+  },
+  // ~= Array.reduce (chainable if acc is Doc)
   fold(proc, accum) {
     let acc = accum;
 
@@ -24,31 +29,31 @@ const DOCUMENT = {
 
     return acc;
   },
-  // ~= Array.filter
+  // ~= Array.filter (chainable)
   prune(predicate) {
     let result = Doc({}, this.config);
 
     for (const { value, key, path } of this) {
       if (predicate(value, key, path)) {
-        result.set(path, value);
+        result.at(path, value);
       }
     }
 
     return result;
   },
 
-  // ~= Array.map
+  // ~= Array.map (chainable)
   transform(proc) {
     let result = Doc({}, this.config);
 
     for (const { value, key, path } of this) {
-      result.set(path, proc(value, key, path));
+      result.at(path, proc(value, key, path));
     }
 
     return result;
   },
 
-  // ~= Array.forEach
+  // ~= Array.forEach (chainable)
   each(proc) {
     for (const { value, key, path } of this) {
       proc(value, key, path);
@@ -78,11 +83,12 @@ const DOCUMENT = {
     return true;
   },
 
+  // ~= Array.flatten (chainable)
   smoosh() {
     let result = Doc({}, this.config);
 
     for (const { value, path } of this) {
-      result.set(path, value);
+      result.at(path, value);
     }
 
     return result;
@@ -102,7 +108,11 @@ const DOCUMENT = {
   }
 };
 
-function Doc(any, { onlyPrimitives = true, onlyJson = true, delimeter = '.' }) {
+const DEFAULT_CONFIG = { onlyPrimitives: true, onlyJson: true, delimeter: '.' };
+
+export default function Doc(any, conf = DEFAULT_CONFIG) {
+  const { onlyJson, onlyPrimitives, delimeter } = conf;
+
   return Object.assign(
     Object.create(DOCUMENT, {
       config: {

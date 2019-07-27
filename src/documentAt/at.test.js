@@ -44,4 +44,19 @@ describe('Setting a document', () => {
 
     expect(_T).toEqual(T);
   });
+
+  it('should create an object at the given path if none exists (numbers are assumed to be array indexes)', () => {
+    let T = { a: 1, b: 2, c: { d: { e: false, f: [{ a: 'hello' }] } } };
+
+    let _T = setDoc(T, ['c', 'd', 'f', 0, 'a'], 'hello');
+
+    expect(_T).toEqual(T);
+
+    let F = {};
+
+    let _F = setDoc(F, ['a', 0, 1, 2, 'b'], 'hello');
+    let __F = { a: [[undefined, [undefined, undefined, { b: 'hello' }]]] };
+
+    expect(_F).toEqual(__F);
+  });
 });

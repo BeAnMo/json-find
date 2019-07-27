@@ -1,4 +1,3 @@
-//import { Json } from '../types';
 import findValues from './index';
 import { BASIC, TEST_DATA } from '../../test/test-data';
 

@@ -56,3 +56,7 @@ export function isCompound(v) {
 export function isKey(json, searchFor) {
   return json === null ? false : isCompound(json) && searchFor in json;
 }
+
+export function splitPath(path, delim = '.') {
+  return path.split(delim);
+}
