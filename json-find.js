@@ -199,6 +199,7 @@ function curry(fn, ...firstArgs) {
 
 function isAtom(v) {
   return (
+    undefined === v ||
     null === v ||
     typeof v === 'boolean' ||
     typeof v === 'number' ||
@@ -212,10 +213,6 @@ function isArray(v) {
 
 function isObject(v) {
   return typeof v === 'object' && !isArray(v) && v !== null;
-}
-
-function isNull(v) {
-  return null === v ? 'null' : v;
 }
 
 function isCompound(v) {
