@@ -1,16 +1,16 @@
 import Queue from './queue';
-import { last, splitPath, isCompound } from './utilss';
+import { last, splitPath, isCompound } from './utils';
 
-function BFSStream(jdoc) {
-    this.jdoc = jdoc;
-    this.delim = jdoc.options.delimeter;
+function BFStream(docInstance) {
+    this.docInstance = docInstance;
+    this.delim = docInstance.options.delimeter;
     this.q = new Queue();
 
     // Load up the queue on instantiation.
-    this.setQueue('', Object.keys(jdoc.doc));
+    this.setQueue('', Object.keys(docInstance.doc));
 }
 
-BFSStream.prototype.setQueue = function (path, keys) {
+BFStream.prototype.setQueue = function (path, keys) {
     keys.forEach(key => {
         const keyPath = `${path}${key}`;
 
@@ -20,15 +20,15 @@ BFSStream.prototype.setQueue = function (path, keys) {
     return this;
 };
 
-BFSStream.prototype.getCurrentKey = function (path) {
+BFStream.prototype.getCurrentKey = function (path) {
     return last(splitPath(path, this.delim));
 };
 
-BFSStream.prototype.getAtPath = function (path) {
-    return this.jdoc.getAt(path, { useConstructor: false });
+BFStream.prototype.getAtPath = function (path) {
+    return this.docInstance.getAt(path, { noInstance: true });
 };
 
-BFSStream.prototype.next = function () {
+BFStream.prototype.next = function () {
     const path = this.q.pop();
     const value = this.getAtPath(path);
 
@@ -45,9 +45,9 @@ BFSStream.prototype.next = function () {
     }
 };
 
-BFSStream.prototype.eof = function () {
+BFStream.prototype.empty = function () {
     return this.q.empty();
 };
 
 
-export default BFSStream;
+export default BFStream;
