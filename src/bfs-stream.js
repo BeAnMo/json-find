@@ -1,5 +1,5 @@
 import Queue from './queue';
-import { last, splitPath } from './utilss';
+import { last, splitPath, isCompound } from './utilss';
 
 function BFSStream(jdoc) {
     this.jdoc = jdoc;
