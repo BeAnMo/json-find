@@ -1,3 +1,5 @@
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/BeAnMo/json-find)
+
 # JSON-FIND
 
 The goal of the module is provide easy access to JSON or JSON-compatible* values. This is not intended for complex JSON queries, but rather for retrieving specifc values without the need to constantly reference a file's structure. In other words, if you are treating JSON as a database and making multiple queries on the same file, this is not for you. However, if you need to get information from JSON data such as from reasonably consistent web API calls where the structure of the data can undergo subtle structural changes, then this module aims to provide a convenient way to access that data.
