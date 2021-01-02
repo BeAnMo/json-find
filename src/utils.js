@@ -85,3 +85,18 @@ export function isCompound(v) {
 export function splitPath(path, delim = '.') {
     return path.split(delim);
 }
+
+export function arrToObj(arr) {
+    return arr
+        .reduce((acc, item, k) => {
+            acc[k] = item;
+
+            return acc;
+        }, {});
+}
+
+export function objToArr(obj) {
+    return Object
+        .keys(obj)
+        .map(k => [k, obj[k]]);
+}

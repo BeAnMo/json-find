@@ -42,12 +42,29 @@ Doc.prototype.set = function (pathStr, val) {
     return this;
 };
 
+Doc.prototype.dump = function () {
+    return this.doc;
+};
+
 Doc.prototype.each = function (proc) {
     const stream = new BFStream(this.doc, this.options.delimeter);
 
     while (!stream.empty()) {
         proc.call(this, stream.next());
     }
+};
+
+Doc.prototype.transform = function (proc) {
+    const stream = new BFStream(this.doc, this.options.delimeter);
+    const results = new Doc(Doc.getBase(this.doc), this.options);
+
+    while (!stream.empty()) {
+        const current = stream.next();
+
+        results.set(current.path.toArray(), proc.call(this, current));
+    }
+
+    return results;
 };
 
 Doc.prototype.prune = function (predicate) {
@@ -58,7 +75,7 @@ Doc.prototype.prune = function (predicate) {
         const current = stream.next();
 
         if (predicate.call(this, current)) {
-            results.set(current.path, current.value);
+            results.set(current.path.toString(), current.value);
         }
     }
 
@@ -77,7 +94,7 @@ Doc.clone = function (doc, options) {
     while (!stream.empty()) {
         const current = stream.next();
 
-        setAtPath(results, splitPath(current.path, delim), current.value);
+        setAtPath(results, current.path.toArray(), current.value);
     }
 
     return results;

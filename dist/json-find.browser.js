@@ -1,33 +1,6 @@
 var JsonFind = (function () {
     'use strict';
 
-    function Queue() {
-        this.q = [];
-        this.L = 0;
-    }
-
-    Queue.prototype.push = function (item) {
-        this.L = this.q.push(item);
-
-        return this;
-    };
-
-    Queue.prototype.pop = function () {
-        const [first, ...rest] = this.q;
-
-        this.q = rest;
-
-        if (this.L > 0) {
-            this.L -= 1;
-        }
-
-        return first;
-    };
-
-    Queue.prototype.empty = function () {
-        return this.L === 0;
-    };
-
     /**
      * @param {Object | Array} obj 
      * @param {string[]} path 
@@ -83,10 +56,6 @@ var JsonFind = (function () {
         return cursor;
     }
 
-    function last(arr) {
-        return arr[arr.length - 1];
-    }
-
     function isArray(v) {
         return Array.isArray(v);
     }
@@ -103,56 +72,77 @@ var JsonFind = (function () {
         return path.split(delim);
     }
 
+    function JsonPath(aPath, delimiter) {
+        this.delimiter = delimiter;
+
+        if (isArray(aPath)) {
+            this.path = aPath;
+        } else {
+            this.path = aPath.split(this.delimiter);
+        }
+    }
+
+    JsonPath.prototype.toString = function () {
+        return this.path.join(this.delimiter);
+    };
+
+    JsonPath.prototype.toArray = function () {
+        return this.path;
+    };
+
+    JsonPath.prototype.clone = function () {
+        return new JsonPath([...this.path], this.delimiter);
+    };
+
+    JsonPath.prototype.slice = function (from, to) {
+        return new JsonPath(this.path.slice(from, to), this.delimiter);
+    };
+
+    JsonPath.prototype.append = function (key) {
+        this.path.push(key);
+
+        return this;
+    };
+
     function BFStream(doc, delimeter) {
         this.doc = doc;
         this.delim = delimeter;
-        this.q = new Queue();
+        // The queue contains JsonPaths.
+        this.q = [];
 
         // Load up the queue on instantiation.
-        this.setQueue('', Object.keys(this.doc));
+        this.setQueue(new JsonPath([], this.delim), Object.keys(this.doc));
     }
 
     BFStream.prototype.setQueue = function (path, keys) {
         keys.forEach(key => {
-            const keyPath = `${path}${key}`;
-
+            const keyPath = path.clone().append(key);
+        
             this.q.push(keyPath);
         });
 
         return this;
     };
 
-    BFStream.prototype.splitPath = function (pathStr) {
-        return splitPath(pathStr, this.delim);
-    };
-
-    BFStream.prototype.getCurrentKey = function (path) {
-        return last(this.splitPath(path));
-    };
-
-    BFStream.prototype.getAtPath = function (path) {
-        return getAtPath(this.doc, this.splitPath(path));
-    };
-
     BFStream.prototype.next = function () {
-        const path = this.q.pop();
-        const value = this.getAtPath(path);
+        const path = this.q.shift();
+        const value = getAtPath(this.doc, path.toArray());
 
         if (!isCompound(value)) {
             return {
                 path,
                 value,
-                key: this.getCurrentKey(path)
+                key: path.slice(-1).toString()
             };
         } else {
-            this.setQueue(`${path}${this.delim}`, Object.keys(value));
+            this.setQueue(path, Object.keys(value));
 
             return this.next();
         }
     };
 
     BFStream.prototype.empty = function () {
-        return this.q.empty();
+        return this.q.length === 0;
     };
 
     /**
@@ -196,12 +186,29 @@ var JsonFind = (function () {
         return this;
     };
 
+    Doc.prototype.dump = function () {
+        return this.doc;
+    };
+
     Doc.prototype.each = function (proc) {
         const stream = new BFStream(this.doc, this.options.delimeter);
 
         while (!stream.empty()) {
             proc.call(this, stream.next());
         }
+    };
+
+    Doc.prototype.transform = function (proc) {
+        const stream = new BFStream(this.doc, this.options.delimeter);
+        const results = new Doc(Doc.getBase(this.doc), this.options);
+
+        while (!stream.empty()) {
+            const current = stream.next();
+
+            results.set(current.path.toArray(), proc.call(this, current));
+        }
+
+        return results;
     };
 
     Doc.prototype.prune = function (predicate) {
@@ -212,7 +219,7 @@ var JsonFind = (function () {
             const current = stream.next();
 
             if (predicate.call(this, current)) {
-                results.set(current.path, current.value);
+                results.set(current.path.toString(), current.value);
             }
         }
 
@@ -231,7 +238,7 @@ var JsonFind = (function () {
         while (!stream.empty()) {
             const current = stream.next();
 
-            setAtPath(results, splitPath(current.path, delim), current.value);
+            setAtPath(results, current.path.toArray(), current.value);
         }
 
         return results;

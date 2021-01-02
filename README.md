@@ -107,3 +107,28 @@ Similar to `Array.find`, returns the first value that matches the predicate or `
 - `doc.findAll(predicate: (item: StreamItem) => boolean) => StreamItem[]`
 
 Returns an array of stream items that match the given predicate.
+
+---
+
+Reddit comment test
+
+```js
+await fetch(window.location + '.json')
+	.then(r => r.json())
+	.then(doc => {
+  	return new JsonFind(doc)
+    	.prune(({ key }) => 'author score created_utc'.includes(key))
+  		.fold((acc, { path, key, value }) => {
+      	const root = path.split('.').slice(0, -1).join('/');
+   	
+      	acc.set(`${root}.${key}`, value);
+      
+      	return acc;
+    	}, new JsonFind({}))
+  		.toggle()
+  		.dump()
+  		.map(([k, v]) => v);
+	})
+	.catch(console.error);
+
+```
