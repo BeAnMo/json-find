@@ -1,10 +1,10 @@
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/BeAnMo/json-find)
 
-# JSON-FIND
+# JSON-FIND-2 (JSON-FOUND)
 
-The goal of the module is provide easy access to JSON or JSON-compatible* values. This is not intended for complex JSON queries, but rather for retrieving specifc values without the need to constantly reference a file's structure. In other words, if you are treating JSON as a database and making multiple queries on the same file, this is not for you. However, if you need to get information from JSON data such as from reasonably consistent web API calls where the structure of the data can undergo subtle structural changes, then this module aims to provide a convenient way to access that data.
+Json-Find is a data transformation library with the goal of giving JSON-compatible* data an interface comparable to JavaScript's native Array.
 
-*a JSON-compatible object means the contents of the object can only be:
+*For a refresher, a JSON-compatible object is one of:
 - Booleans
 - Numbers
 - Strings
@@ -13,15 +13,19 @@ The goal of the module is provide easy access to JSON or JSON-compatible* values
 
 ---
 
+
 ### API
 
 #### Instantiation
+
+`JsonFind(doc: any, options?: { delimiter: '.', useConstructor: false }) => JFInstance`
 
 ```js
     /* CommonJS */
     const JsonFind = require('json-find');
     /* ES6 */
     import JsonFind from 'json-find';
+    /* Available as JsonFind when using a script tag */
 
     const test = {
         "a": 1,
@@ -48,102 +52,42 @@ If passed invalid JSON, JsonData will throw an error. If passed a Number/String/
 
 ---
 
-#### #.checkKey(Object, String) -> JSON or False
+#### Getting/Setting
 
-Performs a depth-first search for the given key and returns its value, otherwise false.
+##### `doc.getAt(pathStr: string, options?: { useConstructor: false })`
 
-```js
-    doc.checkKey('g'); // false
-    doc.checkKey('e'); // 5
-    doc.checkKey('f'); // { e: 8 } 
-```
+If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
 
----
+##### `doc.setAt(pathStr: string, value: any)`
 
-#### #.findValues(Object, ...String) -> Object
-    
-Searches the given Object for each key given. If a given key exists in the Object, its key/value pair
-are copied to the resulting Object. If none are matched, an empty Object is returned.
+Mutates the JsonFind instance at the given path with a value and returns the instance.
 
-If given an Object with multiple identical keys, the value of the first matching key found will be returned, ignoring the others. However, if identical keys exist on the same level within an Object, the value of the last key will be returned.
+#### Iterating
 
-```js
-    doc.findValues('z');      // {}
-    doc.findValues('z', 'd'); // { "d": { "e": 5 } }
-    doc.findValues('a', 'd'); // { "a": 1, "d": { "e": 5 } }
-    
-    // a.c[2].d.e has already been retrieved,
-    // so the value of the first matching key encountered 
-    // by the search for "e" is 8
-    doc.findValues('d', 'e'); // { "d": { "e": 5 }, "e": 8 }
-```
+JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
 
----
+A StreamItem is `{ value: string | number | boolean | null, key: string, path: string }`.
 
-#### #.extractPaths([...String] or False, ...[...String]) -> Object
+##### `doc.fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any`
 
-Extracts the values from JSON at given paths and returns a new Object with values at the given keys. A ```Path``` is an Array-of-String|Number, consisting of all keys (including Array indexes) from a root key to the key for the desired value. 
+Similar to `Array.reduce`. Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
 
-The first parameter is an Array of new keys names. If no new names are necessary, ```false``` maybe be passed instead. 
+##### `doc.transform(proc: (item: StreamItem) => any) => JFInstance`
 
-After the new keys parameter, an arbitrary number of ```Paths``` maybe passed. If no new keys are passed, the keys for the returned Object will be the last item in each Path. If there are more Paths than keys, the original keys are used assigned to values without a new key. If there are more new keys than Paths, null is assigned to the extra new keys. If the same key is reused, the key is renamed key + index.
+Similar to `Array.map`, maps a procedure to each value in a doc.
 
-```js
-    const test = {
-        c: 1,
-        b: [
-            { c: 2, d: 4, e: 'two' },
-            { c: 3, d: 6 },
-            { c: 4, d: 8, e: 'four' },
-            { c: 5, d: 10 }
-        ],
-        f: 'six',
-        g: {
-            h: 'eight',
-            i: [
-                { j: 'ten' }
-            ]
-        }
-    };
+##### `doc.prune(predicate: (item: StreamItem) => boolean) => JFInstance`
 
-    const doc = JsonFind(test);
+Similar to `Array.filter`, "prunes" a tree returning all values that match the predicate function.
 
-    doc.extractPaths(false, ['b', 3, 'c']); // { c: 5 }
-    doc.extractPaths(
-        ['f is', 'h is', 'j is'], // new keys to be assigned 
-        ['f'],                    // paths given
-        ['g', 'h'], 
-        ['g', 'i', 0, 'j']
-    );
-    // { 'f is': 'six', 'h is': 'eight', 'j is': 'ten' } 
+##### `doc.each(proc: (item: StreamItem) => any) => JFInstance`
 
-    /* more Paths than keys */
-    doc.extractPaths(
-        ['a', 'b'], 
-        ['b', 0, 'c'], 
-        ['b', 1, 'c'], 
-        ['b', 2, 'c']
-    );
-    // { a: 2, b: 3, c: 4 }
+Similar to `Array.forEach`, applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
 
-    /* same key reused */
-    doc.extractPaths(
-        false, 
-        ['b', 0, 'c'], 
-        ['b', 1, 'c'], 
-        ['b', 2, 'c']
-    ); 
-    // { c: 2, "c+1": 3, "c+2": 4 }
+##### `doc.find(predicate: (item: StreamItem) => boolean) => any`
 
-    /* more keys than Paths */
-    doc.extractPaths(
-        ['a', 'b', 'c'], 
-        ['f'], 
-        ['g', 'i']
-    );
-    // { a: 'six', b: { h: 'eight', i: [{ j: 'ten' }] }, c: null }
+Similar to `Array.find`, returns the first value that matches the predicate or `undefined`.
 
-    /* accessing all items in an Array */
-    doc.b.map((obj, index) => doc.extractPaths(['c is'], ['b', index, 'c']));
-    // [{ 'c is': 2 }, { 'c is': 3 }, { 'c is': 4 }, { 'c is': 5 }]
-```
+##### `doc.findAll(predicate: (item: StreamItem) => boolean) => StreamItem[]`
+
+Returns an array of stream items that match the given predicate.
