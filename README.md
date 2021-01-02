@@ -1,8 +1,10 @@
-# JSON-FIND
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/BeAnMo/json-find)
 
-The goal of the module is provide easy access to JSON or JSON-compatible* values. This is not intended for complex JSON queries, but rather for retrieving specifc values without the need to constantly reference a file's structure. In other words, if you are treating JSON as a database and making multiple queries on the same file, this is not for you. However, if you need to get information from JSON data such as from reasonably consistent web API calls where the structure of the data can undergo subtle structural changes, then this module aims to provide a convenient way to access that data.
+# JSON-FIND-2 (JSON-FOUND)
 
-*a JSON-compatible object means the contents of the object can only be:
+Json-Find is a data transformation library with the goal of giving JSON-compatible* data an interface comparable to JavaScript's native Array.
+
+*For a refresher, a JSON-compatible object is one of:
 - Booleans
 - Numbers
 - Strings
@@ -11,15 +13,25 @@ The goal of the module is provide easy access to JSON or JSON-compatible* values
 
 ---
 
-### API
 
-#### Instantiation
+## API
+
+### Instantiation
+
+#### `JsonFind(doc: any, options?: Object) => JFInstance`
+
+Options:
+| Key | ValueType | Default | Description |
+|-----|-----------|---------|-------------|
+| `delimeter` | `string` | `"."` | The delimeter for paths (e.g. 'rootKey.0.aChildKey' or 'rootKey/0/aChildKey'). |
+| `useConstructor` | `boolean` | `false` | Return a JsonFind instance when retrieving a specifc key instead of the raw value (only for Objects/Arrays). |
 
 ```js
     /* CommonJS */
     const JsonFind = require('json-find');
     /* ES6 */
     import JsonFind from 'json-find';
+    /* Available as JsonFind when using a script tag */
 
     const test = {
         "a": 1,
@@ -40,108 +52,83 @@ The goal of the module is provide easy access to JSON or JSON-compatible* values
     }
 
     const doc = JsonFind(test);
+    // Use a custom delimeter.
+    const doc JsonFind(test, { delimeter: '***' });
 ```
 
 If passed invalid JSON, JsonData will throw an error. If passed a Number/String/Boolean/null, JsonData will simply return the given argument.
 
 ---
 
-#### #.checkKey(Object, String) -> JSON or False
+### Getting/Setting
 
-Performs a depth-first search for the given key and returns its value, otherwise false.
+- `doc.get(pathStr: string, options?: { useConstructor: false })`
 
-```js
-    doc.checkKey('g'); // false
-    doc.checkKey('e'); // 5
-    doc.checkKey('f'); // { e: 8 } 
-```
+If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
+
+- `doc.set(pathStr: string, value: any)`
+
+Mutates the JsonFind instance at the given path with a value and returns the instance.
+
+### Static Methods
+
+- `JsonFind.clone(Object | Array) => Object | Array`
+
+Performs a deep clone of the given object.
+
+### Iterating
+
+JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
+
+The callbacks for all iterative instance methods bind the current instance to `this`.
+
+A StreamItem is `{ value: string | number | boolean | null, key: string, path: string }`.
+
+- `doc.fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any`
+
+Similar to `Array.reduce`. Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
+
+- `doc.transform(proc: (item: StreamItem) => any) => JFInstance`
+
+Similar to `Array.map`, maps a procedure to each value in a doc.
+
+- `doc.prune(predicate: (item: StreamItem) => boolean) => JFInstance`
+
+Similar to `Array.filter`, "prunes" a tree returning all values that match the predicate function.
+
+- `doc.each(proc: (item: StreamItem) => any) => JFInstance`
+
+Similar to `Array.forEach`, applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
+
+- `doc.find(predicate: (item: StreamItem) => boolean) => any`
+
+Similar to `Array.find`, returns the first value that matches the predicate or `undefined`.
+
+- `doc.findAll(predicate: (item: StreamItem) => boolean) => StreamItem[]`
+
+Returns an array of stream items that match the given predicate.
 
 ---
 
-#### #.findValues(Object, ...String) -> Object
-    
-Searches the given Object for each key given. If a given key exists in the Object, its key/value pair
-are copied to the resulting Object. If none are matched, an empty Object is returned.
-
-If given an Object with multiple identical keys, the value of the first matching key found will be returned, ignoring the others. However, if identical keys exist on the same level within an Object, the value of the last key will be returned.
+Reddit comment test
 
 ```js
-    doc.findValues('z');      // {}
-    doc.findValues('z', 'd'); // { "d": { "e": 5 } }
-    doc.findValues('a', 'd'); // { "a": 1, "d": { "e": 5 } }
-    
-    // a.c[2].d.e has already been retrieved,
-    // so the value of the first matching key encountered 
-    // by the search for "e" is 8
-    doc.findValues('d', 'e'); // { "d": { "e": 5 }, "e": 8 }
-```
+await fetch(window.location + '.json')
+	.then(r => r.json())
+	.then(doc => {
+  	return new JsonFind(doc)
+    	.prune(({ key }) => 'author score created_utc'.includes(key))
+  		.fold((acc, { path, key, value }) => {
+      	const root = path.split('.').slice(0, -1).join('/');
+   	
+      	acc.set(`${root}.${key}`, value);
+      
+      	return acc;
+    	}, new JsonFind({}))
+  		.toggle()
+  		.dump()
+  		.map(([k, v]) => v);
+	})
+	.catch(console.error);
 
----
-
-#### #.extractPaths([...String] or False, ...[...String]) -> Object
-
-Extracts the values from JSON at given paths and returns a new Object with values at the given keys. A ```Path``` is an Array-of-String|Number, consisting of all keys (including Array indexes) from a root key to the key for the desired value. 
-
-The first parameter is an Array of new keys names. If no new names are necessary, ```false``` maybe be passed instead. 
-
-After the new keys parameter, an arbitrary number of ```Paths``` maybe passed. If no new keys are passed, the keys for the returned Object will be the last item in each Path. If there are more Paths than keys, the original keys are used assigned to values without a new key. If there are more new keys than Paths, null is assigned to the extra new keys. If the same key is reused, the key is renamed key + index.
-
-```js
-    const test = {
-        c: 1,
-        b: [
-            { c: 2, d: 4, e: 'two' },
-            { c: 3, d: 6 },
-            { c: 4, d: 8, e: 'four' },
-            { c: 5, d: 10 }
-        ],
-        f: 'six',
-        g: {
-            h: 'eight',
-            i: [
-                { j: 'ten' }
-            ]
-        }
-    };
-
-    const doc = JsonFind(test);
-
-    doc.extractPaths(false, ['b', 3, 'c']); // { c: 5 }
-    doc.extractPaths(
-        ['f is', 'h is', 'j is'], // new keys to be assigned 
-        ['f'],                    // paths given
-        ['g', 'h'], 
-        ['g', 'i', 0, 'j']
-    );
-    // { 'f is': 'six', 'h is': 'eight', 'j is': 'ten' } 
-
-    /* more Paths than keys */
-    doc.extractPaths(
-        ['a', 'b'], 
-        ['b', 0, 'c'], 
-        ['b', 1, 'c'], 
-        ['b', 2, 'c']
-    );
-    // { a: 2, b: 3, c: 4 }
-
-    /* same key reused */
-    doc.extractPaths(
-        false, 
-        ['b', 0, 'c'], 
-        ['b', 1, 'c'], 
-        ['b', 2, 'c']
-    ); 
-    // { c: 2, "c+1": 3, "c+2": 4 }
-
-    /* more keys than Paths */
-    doc.extractPaths(
-        ['a', 'b', 'c'], 
-        ['f'], 
-        ['g', 'i']
-    );
-    // { a: 'six', b: { h: 'eight', i: [{ j: 'ten' }] }, c: null }
-
-    /* accessing all items in an Array */
-    doc.b.map((obj, index) => doc.extractPaths(['c is'], ['b', index, 'c']));
-    // [{ 'c is': 2 }, { 'c is': 3 }, { 'c is': 4 }, { 'c is': 5 }]
 ```
