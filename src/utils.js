@@ -1,3 +1,58 @@
+/**
+ * @param {Object | Array} obj 
+ * @param {string[]} path 
+ * 
+ * @returns {any}
+ */
+export function getAtPath(obj, path) {
+    let cursor = obj;
+    let index = 0;
+
+    while (path[index] !== undefined) {
+        cursor = cursor[path[index]];
+
+        if (cursor === undefined) {
+            break;
+        }
+
+        index++;
+    }
+
+    return cursor;
+}
+
+/**
+ * 
+ * @param {Object | Array} obj 
+ * @param {string[]} path 
+ * @param {any} value 
+ * 
+ * @returns {Object | Array}
+ */
+export function setAtPath(obj, path, value) {
+    let cursor = obj;
+    let index = 0;
+
+    while (path[index + 1] !== undefined) {
+        const next = path[index];
+
+        if (cursor[next] === undefined) {
+            // In order to determine the shape of the next cursor,
+            // this step needs to know whether the next path value is
+            // an array index or object key.
+            cursor = cursor[next] = isNaN(path[index + 1]) ? {} : [];
+        } else {
+            cursor = cursor[next];
+        }
+
+        index++;
+    }
+
+    cursor[path[index]] = value;
+
+    return cursor;
+}
+
 export function last(arr) {
     return arr[arr.length - 1];
 }

@@ -2,8 +2,8 @@ import BFStream from './bf-stream';
 import Doc from './doc';
 
 describe('A breadth-first stream instance', () => {
-    const d0 = new Doc({ a: 1, b: 2, c: [3, 4, 5] });
-    const s0 = new BFStream(d0);
+    const d0 = { a: 1, b: 2, c: [3, 4, 5] };
+    const s0 = new BFStream(d0, '.');
     const values = [
         {
             key: 'a',

@@ -27,6 +27,61 @@ Queue.prototype.empty = function () {
     return this.L === 0;
 };
 
+/**
+ * @param {Object | Array} obj 
+ * @param {string[]} path 
+ * 
+ * @returns {any}
+ */
+function getAtPath(obj, path) {
+    let cursor = obj;
+    let index = 0;
+
+    while (path[index] !== undefined) {
+        cursor = cursor[path[index]];
+
+        if (cursor === undefined) {
+            break;
+        }
+
+        index++;
+    }
+
+    return cursor;
+}
+
+/**
+ * 
+ * @param {Object | Array} obj 
+ * @param {string[]} path 
+ * @param {any} value 
+ * 
+ * @returns {Object | Array}
+ */
+function setAtPath(obj, path, value) {
+    let cursor = obj;
+    let index = 0;
+
+    while (path[index + 1] !== undefined) {
+        const next = path[index];
+
+        if (cursor[next] === undefined) {
+            // In order to determine the shape of the next cursor,
+            // this step needs to know whether the next path value is
+            // an array index or object key.
+            cursor = cursor[next] = isNaN(path[index + 1]) ? {} : [];
+        } else {
+            cursor = cursor[next];
+        }
+
+        index++;
+    }
+
+    cursor[path[index]] = value;
+
+    return cursor;
+}
+
 function last(arr) {
     return arr[arr.length - 1];
 }
@@ -47,13 +102,13 @@ function splitPath(path, delim = '.') {
     return path.split(delim);
 }
 
-function BFStream(docInstance) {
-    this.docInstance = docInstance;
-    this.delim = docInstance.options.delimeter;
+function BFStream(doc, delimeter) {
+    this.doc = doc;
+    this.delim = delimeter;
     this.q = new Queue();
 
     // Load up the queue on instantiation.
-    this.setQueue('', Object.keys(docInstance.doc));
+    this.setQueue('', Object.keys(this.doc));
 }
 
 BFStream.prototype.setQueue = function (path, keys) {
@@ -66,12 +121,16 @@ BFStream.prototype.setQueue = function (path, keys) {
     return this;
 };
 
+BFStream.prototype.splitPath = function (pathStr) {
+    return splitPath(pathStr, this.delim);
+};
+
 BFStream.prototype.getCurrentKey = function (path) {
-    return last(splitPath(path, this.delim));
+    return last(this.splitPath(path));
 };
 
 BFStream.prototype.getAtPath = function (path) {
-    return this.docInstance.getAt(path, { noInstance: true });
+    return getAtPath(this.doc, this.splitPath(path));
 };
 
 BFStream.prototype.next = function () {
@@ -95,7 +154,15 @@ BFStream.prototype.empty = function () {
     return this.q.empty();
 };
 
+/**
+ * @param {Object | Array} doc 
+ * @param {{ delimeter?: string, useConstructor?: boolean }} options 
+ */
 function Doc(doc, options = {}) {
+    if (!isCompound(doc)) {
+        throw new Error(`Instantiating JsonFind requires an Object or an Array.`);
+    }
+
     this.options = {
         delimeter: options.delimeter || '.',
         useConstructor: options.useConstructor || false
@@ -107,57 +174,29 @@ function Doc(doc, options = {}) {
  * @param {string} pathStr
  * @param {{ useConstructor?: boolean }=} opts
  */
-Doc.prototype.getAt = function (pathStr, opts = {}) {
+Doc.prototype.get = function (pathStr, opts = {}) {
     const useConstructor = opts.useConstructor || this.options.useConstructor;
     const path = splitPath(pathStr, this.options.delimeter);
-    let results = this.doc;
-    let index = 0;
+    const result = getAtPath(this.doc, path);
 
-    while (path[index] !== undefined) {
-        results = results[path[index]];
-
-        if (results === undefined) {
-            break;
-        }
-
-        index++;
-    }
-
-    if (isCompound(results) && useConstructor) {
-        return new Doc(results, this.options);
+    if (useConstructor && isCompound(result)) {
+        return new Doc(result, this.options);
 
     } else {
-        return results;
+        return result;
     }
 };
 
-Doc.prototype.setAt = function (pathStr, val) {
+Doc.prototype.set = function (pathStr, val) {
     const path = splitPath(pathStr, this.options.delimeter);
-    let cursor = this.doc;
-    let index = 0;
 
-    while (path[index + 1] !== undefined) {
-        const next = path[index];
-
-        if (cursor[next] === undefined) {
-            // In order to determine the shape of the next cursor,
-            // this step needs to know whether the next path value is
-            // an array index or object key.
-            cursor = cursor[next] = isNaN(path[index + 1]) ? {} : [];
-        } else {
-            cursor = cursor[next];
-        }
-
-        index++;
-    }
-
-    cursor[path[index]] = val;
+    setAtPath(this.doc, path, val);
 
     return this;
 };
 
 Doc.prototype.each = function (proc) {
-    const stream = new BFStream(this);
+    const stream = new BFStream(this.doc, this.options.delimeter);
 
     while (!stream.empty()) {
         proc.call(this, stream.next());
@@ -165,15 +204,33 @@ Doc.prototype.each = function (proc) {
 };
 
 Doc.prototype.prune = function (predicate) {
-    const stream = new BFStream(this);
-    const results = new Doc({}, this.options);
+    const stream = new BFStream(this.doc, this.options.delimeter);
+    const results = new Doc(Doc.getBase(this.doc), this.options);
 
     while (!stream.empty()) {
         const current = stream.next();
 
         if (predicate.call(this, current)) {
-            results.setAt(current.path, current.value);
+            results.set(current.path, current.value);
         }
+    }
+
+    return results;
+};
+
+Doc.getBase = function (doc) {
+    return isArray(doc) ? [] : {};
+};
+
+Doc.clone = function (doc, options) {
+    const delim = options && options.delimeter || '.';
+    const stream = new BFStream(doc, delim);
+    let results = Doc.getBase(doc);
+
+    while (!stream.empty()) {
+        const current = stream.next();
+
+        setAtPath(results, splitPath(current.path, delim), current.value);
     }
 
     return results;

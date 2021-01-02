@@ -1,13 +1,13 @@
 import Queue from './queue';
-import { last, splitPath, isCompound } from './utils';
+import { last, splitPath, isCompound, getAtPath } from './utils';
 
-function BFStream(docInstance) {
-    this.docInstance = docInstance;
-    this.delim = docInstance.options.delimeter;
+function BFStream(doc, delimeter) {
+    this.doc = doc;
+    this.delim = delimeter;
     this.q = new Queue();
 
     // Load up the queue on instantiation.
-    this.setQueue('', Object.keys(docInstance.doc));
+    this.setQueue('', Object.keys(this.doc));
 }
 
 BFStream.prototype.setQueue = function (path, keys) {
@@ -20,12 +20,16 @@ BFStream.prototype.setQueue = function (path, keys) {
     return this;
 };
 
+BFStream.prototype.splitPath = function (pathStr) {
+    return splitPath(pathStr, this.delim);
+};
+
 BFStream.prototype.getCurrentKey = function (path) {
-    return last(splitPath(path, this.delim));
+    return last(this.splitPath(path));
 };
 
 BFStream.prototype.getAtPath = function (path) {
-    return this.docInstance.getAt(path, { noInstance: true });
+    return getAtPath(this.doc, this.splitPath(path));
 };
 
 BFStream.prototype.next = function () {
