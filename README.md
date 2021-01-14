@@ -39,7 +39,7 @@
   <h3 align="center">project_title</h3>
 
   <p align="center">
-    project_description
+    Json-Find is a data transformation library with the goal of giving JSON-compatible data an interface comparable to JavaScript's native Array.
     <br />
     <a href="https://github.com/BeAnMo/json-find"><strong>Explore the docs »</strong></a>
     <br />
@@ -60,10 +60,12 @@
       <a href="#about-the-project">About The Project</a>
     </li>
     <li>
-        <a href="#usage">Usage</a>
+        <a href="#usage">Usage & API</a>
         <ul>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#instantiation">Instantiation</a></li>
+        <li><a href="#static_methods">Static Methods</a></li>
+        <li><a href="#getters_setters">Getters & Setters</a></li>
       </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -76,8 +78,6 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-Json-Find is a data transformation library with the goal of giving JSON-compatible data an interface comparable to JavaScript's native Array.
 
 Currently, Json-Find only supports JSON-compatible objects.
 
@@ -102,14 +102,14 @@ For a refresher, a JSON-compatible object is one of:
 ### Instantiation
 
 ```js
-`JsonFind(doc: any, options?: Object) => JFInstance`
+JsonFind(doc: any, options?: Object) => JFInstance
 ```
 
 Options:
 | Key | ValueType | Default | Description |
 |-----|-----------|---------|-------------|
-| `delimeter` | `string` | `"."` | The delimeter for paths (e.g. 'rootKey.0.aChildKey' or 'rootKey/0/aChildKey'). |
-| `useConstructor` | `boolean` | `false` | Return a JsonFind instance when retrieving a specifc key instead of the raw value (only for Objects/Arrays). |
+| delimeter | `string` | `"."` | The delimeter for paths (e.g. 'rootKey.0.aChildKey' or 'rootKey/0/aChildKey'). |
+| useConstructor | `boolean` | `false` | Return a JsonFind instance when retrieving a specifc key instead of the raw value (only for Objects/Arrays). |
 
 ```js
     /* CommonJS */
@@ -142,6 +142,24 @@ Options:
 ```
 
 If passed invalid JSON, JsonData will throw an error. If passed a Number/String/Boolean/null, JsonData will simply return the given argument.
+
+### Static Methods
+
+```js
+JsonFind.clone(Object | Array) => Object | Array
+```
+
+Performs a deep clone of the given object.
+
+### Getting/Setting
+
+- `doc.get(pathStr: string, options?: { useConstructor: false })`
+
+If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
+
+- `doc.set(pathStr: string, value: any)`
+
+Mutates the JsonFind instance at the given path with a value and returns the instance.
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
