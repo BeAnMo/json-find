@@ -44,8 +44,6 @@
     <a href="https://github.com/BeAnMo/json-find"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/BeAnMo/json-find">View Demo</a>
-    ·
     <a href="https://github.com/BeAnMo/json-find/issues">Report Bug</a>
     ·
     <a href="https://github.com/BeAnMo/json-find/issues">Request Feature</a>
@@ -60,23 +58,17 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
+        <a href="#usage">Usage</a>
+        <ul>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#instantiation">Instantiation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
@@ -85,60 +77,75 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+Json-Find is a data transformation library with the goal of giving JSON-compatible data an interface comparable to JavaScript's native Array.
 
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`, `project_title`, `project_description`
+Currently, Json-Find only supports JSON-compatible objects.
 
-
-### Built With
-
-* []()
-* []()
-* []()
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-To get a local copy up and running follow these simple steps.
-
-### Prerequisites
-
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-1. Clone the repo
-   ```sh
-   git clone https://github.com/BeAnMo/json-find.git
-   ```
-2. Install NPM packages
-   ```sh
-   npm install
-   ```
-
+For a refresher, a JSON-compatible object is one of:
+- Booleans
+- Numbers
+- Strings
+- Objects (of valid JSON)
+- Arrays (of valid JSON)
 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+### Installation
+
+1. Install from NPM
+   ```sh
+   npm install json-find
+   ```
+
+### Instantiation
+
+```js
+`JsonFind(doc: any, options?: Object) => JFInstance`
+```
+
+Options:
+| Key | ValueType | Default | Description |
+|-----|-----------|---------|-------------|
+| `delimeter` | `string` | `"."` | The delimeter for paths (e.g. 'rootKey.0.aChildKey' or 'rootKey/0/aChildKey'). |
+| `useConstructor` | `boolean` | `false` | Return a JsonFind instance when retrieving a specifc key instead of the raw value (only for Objects/Arrays). |
+
+```js
+    /* CommonJS */
+    const JsonFind = require('json-find');
+    /* ES6 */
+    import JsonFind from 'json-find';
+    /* Available as JsonFind when using a script tag */
+
+    const test = {
+        "a": 1,
+        "b": 2,
+        "c": [
+            3, 
+            4, 
+            {
+                "d": {
+                    "e": 5
+                },
+                "f": {
+                    "e": 8
+                }
+            }
+        ],
+        "d": 7
+    }
+
+    const doc = JsonFind(test);
+    // Use a custom delimeter.
+    const doc JsonFind(test, { delimeter: '***' });
+```
+
+If passed invalid JSON, JsonData will throw an error. If passed a Number/String/Boolean/null, JsonData will simply return the given argument.
+
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-See the [open issues](https://github.com/BeAnMo/json-find/issues) for a list of proposed features (and known issues).
 
 
 
@@ -154,32 +161,16 @@ Contributions are what make the open source community such an amazing place to b
 5. Open a Pull Request
 
 
-
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 
-
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email
-
 Project Link: [https://github.com/BeAnMo/json-find](https://github.com/BeAnMo/json-find)
-
-
-
-<!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
-
-* []()
-* []()
-* []()
-
-
-
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
