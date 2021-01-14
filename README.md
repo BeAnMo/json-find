@@ -75,6 +75,8 @@
                 <li><a href="#each">doc.each</a></li>
                 <li><a href="#find">doc.find</a></li>
                 <li><a href="#find-all">doc.findAll</a></li>
+                <li><a href="#smoosh">doc.smoosh</a></li>
+                <li><a href="#toggle">doc.toggle</a></li>
             </ul>
         </li>
       </ul>
@@ -102,6 +104,35 @@ For a refresher, a JSON-compatible object is one of:
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+
+### Reddit Comments
+
+Imagine your NLP pipeline needs to ingest reddit comments. Comment pages are arbitrarily nested arrays of objects of arrays of objects which can require dozens of lines of looping & null checking to extract the necessary data.
+
+```js
+await fetch(REDDIT_COMMENTS_URL + '.json')
+	.then(r => r.json())
+	.then(json => {
+        return new JsonFind(json)
+            // Prunes the comment tree for the specified keys.
+            .prune(({ key }) => 'author score created_utc body'.includes(key))
+            // Flattens the pruned tree.
+            .fold((acc, { path, key, value }) => {
+                const root = path.slice(0, 1);
+            
+                acc.set(`${root}.${key}`, value);
+            
+                return acc;
+            }, new JsonFind({}))
+            // Converts the flattened object to an array.
+            .toggle()
+            // Returns the array.
+            .get()
+            // The array can now be processed using built-in Array methods.
+            .reduce(...);
+        })
+	.catch(console.error);
+```
 
 ### Installation
 
@@ -154,6 +185,8 @@ Options:
 
 If passed invalid JSON, JsonData will throw an error. If passed a Number/String/Boolean/null, JsonData will simply return the given argument.
 
+<br />
+
 ### Static Methods
 
 ```js
@@ -167,17 +200,19 @@ Performs a deep clone of the given object.
 #### Get
 
 ```js
-doc.get(pathStr: string, options?: { useConstructor: false })
+doc.get(path?: string, options?: { useConstructor: false }) JFInstance | Object | Array
 ```
 
 If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
+
+When no `path` is provided or if `path` is and empty string (`""`), the current object is returned.
 
 <br />
 
 #### Set
 
 ```js
-doc.set(pathStr: string, value: any)
+doc.set(pathStr: string, value: any) => JFInstance
 ```
 
 Mutates the JsonFind instance at the given path with a value and returns the instance.
@@ -254,6 +289,25 @@ Returns an array of stream items that match the given predicate.
 
 <br />
 
+#### Smoosh
+
+```js
+doc.smoosh() => JFInstance
+```
+
+Completely flattens an object to a single of Object of `{...string<JFPath>: any }`.
+
+<br />
+
+#### Toggle
+
+```js
+doc.toggle() => JFInstance
+```
+
+Toggles the root object between Object and Array. Toggling Object->Array creates `[...[string<key>, any]]` and Array->Object creates `{...number: any}`.
+
+<br />
 
 <!-- CONTRIBUTING -->
 ## Contributing

@@ -22,6 +22,10 @@ function Doc(doc, options = {}) {
  * @param {{ useConstructor?: boolean }=} opts
  */
 Doc.prototype.get = function (pathStr, opts = {}) {
+    if(!pathStr){
+        return this.doc;
+    }
+
     const useConstructor = opts.useConstructor || this.options.useConstructor;
     const path = splitPath(pathStr, this.options.delimeter);
     const result = getAtPath(this.doc, path);
@@ -42,9 +46,16 @@ Doc.prototype.set = function (pathStr, val) {
     return this;
 };
 
-Doc.prototype.dump = function () {
-    return this.doc;
-};
+Doc.prototype.fold = function(proc, acc){
+    const stream = new BFStream(this.doc, this.options.delimeter);
+    let results = acc;
+
+    while (!stream.empty()) {
+        results = proc.call(this, results, stream.next());
+    }
+
+    return results;
+}
 
 Doc.prototype.each = function (proc) {
     const stream = new BFStream(this.doc, this.options.delimeter);
