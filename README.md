@@ -64,8 +64,8 @@
         <ul>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#instantiation">Instantiation</a></li>
-        <li><a href="#static_methods">Static Methods</a></li>
-        <li><a href="#getters_setters">Getters & Setters</a></li>
+        <li><a href="#static methods">Static Methods</a></li>
+        <li><a href="#getters & setters">Getters & Setters</a></li>
       </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
