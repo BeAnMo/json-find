@@ -64,8 +64,19 @@
         <ul>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#instantiation">Instantiation</a></li>
-        <li><a href="#static methods">Static Methods</a></li>
-        <li><a href="#getters & setters">Getters & Setters</a></li>
+        <li><a href="#static-methods">Static Methods</a></li>
+        <li><a href="#getting-and-setting">Getting and Setting</a></li>
+        <li>
+            <a href="#iterating">Iterating</a>
+            <ul>
+                <li><a href="#fold">doc.fold</a></li>
+                <li><a href="#transform">doc.transform</a></li>
+                <li><a href="#prune">doc.prune</a></li>
+                <li><a href="#each">doc.each</a></li>
+                <li><a href="#find">doc.find</a></li>
+                <li><a href="#find-all">doc.findAll</a></li>
+            </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -151,7 +162,7 @@ JsonFind.clone(Object | Array) => Object | Array
 
 Performs a deep clone of the given object.
 
-### Getting/Setting
+### Getting and Setting
 
 - `doc.get(pathStr: string, options?: { useConstructor: false })`
 
@@ -160,6 +171,62 @@ If `useConstructor` is `true` and the value at the given path is an Object or Ar
 - `doc.set(pathStr: string, value: any)`
 
 Mutates the JsonFind instance at the given path with a value and returns the instance.
+
+### Iterating
+
+JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
+
+The callbacks for all iterative instance methods bind the current instance to `this`.
+
+A StreamItem is `{ value: string | number | boolean | null, key: string, path: string }`.
+
+#### Fold
+
+```js
+doc.fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any
+```
+
+Similar to `Array.reduce`. Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
+
+#### Transform
+
+```js
+doc.transform(proc: (item: StreamItem) => any) => JFInstance
+```
+
+Similar to `Array.map`, maps a procedure to each value in a doc.
+
+#### Prune
+
+```js
+doc.prune(predicate: (item: StreamItem) => boolean) => JFInstance
+```
+
+Similar to `Array.filter`, "prunes" a tree returning all values that match the predicate function.
+
+#### Each
+
+```js
+doc.each(proc: (item: StreamItem) => any) => JFInstance
+```
+
+Similar to `Array.forEach`, applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
+
+#### Find
+
+```js
+doc.find(predicate: (item: StreamItem) => boolean) => any
+```
+
+Similar to `Array.find`, returns the first value that matches the predicate or `undefined`.
+
+#### Find All
+
+```js
+doc.findAll(predicate: (item: StreamItem) => boolean) => StreamItem[]
+```
+
+Returns an array of stream items that match the given predicate.
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
