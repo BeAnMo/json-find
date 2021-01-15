@@ -104,6 +104,12 @@ var JsonFind = (function () {
         return this;
     };
 
+    JsonPath.prototype.setDelimeter = function (newDelim) {
+        this.delimiter = newDelim;
+
+        return this;
+    };
+
     function BFStream(doc, delimeter) {
         this.doc = doc;
         this.delim = delimeter;
@@ -166,7 +172,7 @@ var JsonFind = (function () {
      * @param {{ useConstructor?: boolean }=} opts
      */
     Doc.prototype.get = function (pathStr, opts = {}) {
-        if(!pathStr){
+        if (!pathStr) {
             return this.doc;
         }
 
@@ -190,7 +196,7 @@ var JsonFind = (function () {
         return this;
     };
 
-    Doc.prototype.fold = function(proc, acc){
+    Doc.prototype.fold = function (proc, acc) {
         const stream = new BFStream(this.doc, this.options.delimeter);
         let results = acc;
 
@@ -235,6 +241,27 @@ var JsonFind = (function () {
         }
 
         return results;
+    };
+
+    Doc.prototype.toggle = function () {
+        let converted = this.doc;
+
+        if (isArray(this.doc)) {
+            converted = Object.keys(this.doc)
+                .reduce((acc, k) => {
+                    acc[k] = this.doc[k];
+
+                    return acc;
+                }, {});
+
+        } else {
+            converted = Object.keys(this.doc)
+                .map((k) => {
+                    return [k, this.doc[k]];
+                }, {});
+        }
+
+        return new Doc(converted, this.options);
     };
 
     Doc.getBase = function (doc) {

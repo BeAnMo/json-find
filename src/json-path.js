@@ -32,4 +32,11 @@ JsonPath.prototype.append = function (key) {
     return this;
 };
 
+JsonPath.prototype.setDelimeter = function (newDelim) {
+    this.delimiter = newDelim;
+
+    return this;
+};
+
+
 export default JsonPath;

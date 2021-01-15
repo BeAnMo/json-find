@@ -109,28 +109,34 @@ For a refresher, a JSON-compatible object is one of:
 
 Imagine your NLP pipeline needs to ingest reddit comments. Comment pages are arbitrarily nested arrays of objects of arrays of objects which can require dozens of lines of looping & null checking to extract the necessary data.
 
+JsonFind does that work with a couple of chained method calls.
+
 ```js
 await fetch(REDDIT_COMMENTS_URL + '.json')
 	.then(r => r.json())
 	.then(json => {
         return new JsonFind(json)
             // Prunes the comment tree for the specified keys.
-            .prune(({ key }) => 'author score created_utc body'.includes(key))
-            // Flattens the pruned tree.
+            .prune(({ key }) => 'author score created body'.includes(key))
+            // Folds the pruned tree into a flattened Object of:
+            // { ...key: { created, score, body, author } }
             .fold((acc, { path, key, value }) => {
-                const root = path.slice(0, 1);
-            
+                // Moves up one from the current path to get the necessary root path.
+                // Replaces the delimeter and coverts the root path to a string.
+                const root = path.slice(0, -1).setDelimeter('/').toString();
+                // Updates the accumulator Object:
+                // {...<path/to/object>: {...<key>: value } }
                 acc.set(`${root}.${key}`, value);
-            
+
                 return acc;
             }, new JsonFind({}))
-            // Converts the flattened object to an array.
+            // Converts the flattened tree into an array of [...[key, { created, score, body, author }]]
             .toggle()
-            // Returns the array.
+            // Returns the current document.
             .get()
-            // The array can now be processed using built-in Array methods.
-            .reduce(...);
-        })
+            // Can now use native Array methods for further processing.
+            .map(([k, [obj]]) => obj);
+    })
 	.catch(console.error);
 ```
 
