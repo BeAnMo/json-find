@@ -22,6 +22,7 @@ BFStream.prototype.setQueue = function (path, keys) {
 };
 
 BFStream.prototype.next = function () {
+    // handle an empty path
     const path = this.q.shift();
     const value = getAtPath(this.doc, path.toArray());
 

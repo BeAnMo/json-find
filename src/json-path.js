@@ -18,6 +18,15 @@ JsonPath.prototype.toArray = function () {
     return this.path;
 };
 
+JsonPath.prototype.join = function (alternateDelim) {
+    if (alternateDelim !== undefined) {
+        return this.path.join(alternateDelim);
+    } else {
+        return this.toString();
+    }
+};
+
+
 JsonPath.prototype.clone = function () {
     return new JsonPath([...this.path], this.delimiter);
 };
@@ -31,12 +40,5 @@ JsonPath.prototype.append = function (key) {
 
     return this;
 };
-
-JsonPath.prototype.setDelimeter = function (newDelim) {
-    this.delimiter = newDelim;
-
-    return this;
-};
-
 
 export default JsonPath;

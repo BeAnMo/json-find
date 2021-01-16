@@ -20,28 +20,27 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+<!--
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
-
+-->
 
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/BeAnMo/json-find">
+  <!--<a href="https://github.com/BeAnMo/json-find">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+  </a>-->
 
-  <h3 align="center">project_title</h3>
+  <h3 align="center">Json-Find</h3>
 
   <p align="center">
-    Json-Find is a data transformation library with the goal of giving JSON-compatible data an interface comparable to JavaScript's native Array.
-    <br />
-    <a href="https://github.com/BeAnMo/json-find"><strong>Explore the docs »</strong></a>
+    Json-Find is a data transformation library that gives JSON-compatible data chainable, Array-inspired methods.
     <br />
     <br />
     <a href="https://github.com/BeAnMo/json-find/issues">Report Bug</a>
@@ -60,25 +59,19 @@
       <a href="#about-the-project">About The Project</a>
     </li>
     <li>
-        <a href="#usage">Usage & API</a>
+        <a href="#Examples">Examples</a>
         <ul>
+            <li><a href="#reddit-comments">Reddit Comments</a></li>
+        </ul>
+    </li>
+    <li>
+      <a href="#documentation">Documentation</a>
+      <ul>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#instantiation">Instantiation</a></li>
-        <li><a href="#static-methods">Static Methods</a></li>
-        <li><a href="#getting-and-setting">Getting and Setting</a></li>
-        <li>
-            <a href="#iterating">Iterating</a>
-            <ul>
-                <li><a href="#fold">doc.fold</a></li>
-                <li><a href="#transform">doc.transform</a></li>
-                <li><a href="#prune">doc.prune</a></li>
-                <li><a href="#each">doc.each</a></li>
-                <li><a href="#find">doc.find</a></li>
-                <li><a href="#find-all">doc.findAll</a></li>
-                <li><a href="#smoosh">doc.smoosh</a></li>
-                <li><a href="#toggle">doc.toggle</a></li>
-            </ul>
-        </li>
+        <li><a href="#json-document">JSON Document</a></li>
+        <li><a href="#json-path">JSON Path</a></li>
+        <li><a href="#breadth-first-stream">Breadth First Stream</a></li>
       </ul>
     </li>
     <li><a href="#contributing">Contributing</a></li>
@@ -103,11 +96,11 @@ For a refresher, a JSON-compatible object is one of:
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+## Examples
 
 ### Reddit Comments
 
-Imagine your NLP pipeline needs to ingest reddit comments. Comment pages are arbitrarily nested arrays of objects of arrays of objects which can require dozens of lines of looping & null checking to extract the necessary data.
+Imagine your projectct needs to extract the text & scores from reddit comments. Comment pages are arbitrarily nested arrays of objects of arrays of objects which can require dozens of lines of looping & null checking to extract the necessary data.
 
 JsonFind does that work with a couple of chained method calls.
 
@@ -115,30 +108,35 @@ JsonFind does that work with a couple of chained method calls.
 await fetch(REDDIT_COMMENTS_URL + '.json')
 	.then(r => r.json())
 	.then(json => {
-        return new JsonFind(json)
+        const rows = new JsonFind(json)
             // Prunes the comment tree for the specified keys.
             .prune(({ key }) => 'author score created body'.includes(key))
             // Folds the pruned tree into a flattened Object of:
             // { ...key: { created, score, body, author } }
             .fold((acc, { path, key, value }) => {
-                // Moves up one from the current path to get the necessary root path.
-                // Replaces the delimeter and coverts the root path to a string.
-                const root = path.slice(0, -1).setDelimeter('/').toString();
-                // Updates the accumulator Object:
+                const root = path
+                     // Moves up one from the current path to get the necessary root path.
+                    .slice(0, -1)
+                    // The delimeter is replaced to allow using the whole root path
+                    // as a single Object key.
+                    .join('/');
+                // Update and return the accumulator Object:
                 // {...<path/to/object>: {...<key>: value } }
-                acc.set(`${root}.${key}`, value);
-
-                return acc;
+                return acc.set(`${root}.${key}`, value);
             }, new JsonFind({}))
             // Converts the flattened tree into an array of [...[key, { created, score, body, author }]]
             .toggle()
             // Returns the current document.
             .get()
             // Can now use native Array methods for further processing.
-            .map(([k, [obj]]) => obj);
+            .map(([key, values]) => values);
+
+        console.table(rows);
     })
 	.catch(console.error);
 ```
+
+## Documentation
 
 ### Installation
 
@@ -147,10 +145,42 @@ await fetch(REDDIT_COMMENTS_URL + '.json')
    npm install json-find
    ```
 
-### Instantiation
+---
+
+### JSON Document
+
+#### Instantiation
 
 ```js
-JsonFind(doc: any, options?: Object) => JFInstance
+JsonFind(doc: Object | Array, options?: Object) => JsonDocument
+
+ValidPath = JsonPath | string | string[]
+
+JsonDocument = {
+    static clone(Object | Array) => Object | Array,
+
+    get(path?: ValidPath, options?: { useConstructor: false }) => JsonDocument | Object | Array,
+
+    set(path: ValidPath, value: any) => JsonDocument,
+
+    fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any,
+
+    transform(proc: (item: StreamItem) => any) => JsonDocument,
+
+    prune(predicate: (item: StreamItem) => boolean) => JsonDocument,
+
+    each(proc: (item: StreamItem) => any) => JsonDocument,
+
+    select(predicate: (item: StreamItem) => boolean) => any,
+
+    selectAll(predicate: (item: StreamItem) => boolean) => StreamItem[],
+
+    smoosh() => JsonDocument,
+
+    toggle() => JsonDocument,
+
+    toStream() => BFSteamInstance
+}
 ```
 
 Options:
@@ -169,150 +199,144 @@ Options:
     const test = {
         "a": 1,
         "b": 2,
-        "c": [
-            3, 
-            4, 
-            {
-                "d": {
-                    "e": 5
-                },
-                "f": {
-                    "e": 8
-                }
-            }
-        ],
-        "d": 7
+        "c": 3
     }
 
+    // "new" is optional.
+    const doc = new JsonFind(test);
     const doc = JsonFind(test);
     // Use a custom delimeter.
-    const doc JsonFind(test, { delimeter: '***' });
+    const doc = JsonFind(test, { delimeter: '***' });
 ```
 
 If passed invalid JSON, JsonData will throw an error. If passed a Number/String/Boolean/null, JsonData will simply return the given argument.
 
-<br />
+A document instance wraps the given object. For testing/debugging, consider deep-cloning an object before passing it to the constructor to prevent unwanted mutations.
 
-### Static Methods
 
-```js
-JsonFind.clone(Object | Array) => Object | Array
-```
-
+#### clone
 Performs a deep clone of the given object.
 
-### Getting and Setting
-
-#### Get
-
-```js
-doc.get(path?: string, options?: { useConstructor: false }) JFInstance | Object | Array
-```
-
+#### get
 If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
 
 When no `path` is provided or if `path` is and empty string (`""`), the current object is returned.
 
-<br />
-
-#### Set
-
-```js
-doc.set(pathStr: string, value: any) => JFInstance
-```
-
+#### set
 Mutates the JsonFind instance at the given path with a value and returns the instance.
-
-<br />
 
 ### Iterating
 
-JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
+Part of the goal of Json-Find is to give users an interface comparable to native Array methods, providing a concise, chainable API. Rather than copy Array method names, Json-Find uses alternates to ensure a user can bounce between Json-Find and Array methods without confusion.
+
+| Array | JsonFind |
+|-----|-----------|
+| reduce | fold | 
+| map | transform |
+| filter | prune |
+| forEach | each |
+| find | select |
 
 The callbacks for all iterative instance methods bind the current instance to `this`.
 
-A StreamItem is `{ value: string | number | boolean | null, key: string, path: string }`.
+#### fold
+Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
 
-<br />
+#### transform
+Maps a procedure to each value in a doc.
 
-#### Fold
+#### prune
+"Prunes" a tree returning all values that match the predicate function but maintains the shape of the original document. This may return sparse arrays.
 
-```js
-doc.fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any
-```
+#### each
+Applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
 
-Similar to `Array.reduce`. Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
+#### select
+Returns the first value that matches the predicate or `undefined`.
 
-<br />
-
-#### Transform
-
-```js
-doc.transform(proc: (item: StreamItem) => any) => JFInstance
-```
-
-Similar to `Array.map`, maps a procedure to each value in a doc.
-
-<br />
-
-#### Prune
-
-```js
-doc.prune(predicate: (item: StreamItem) => boolean) => JFInstance
-```
-
-Similar to `Array.filter`, "prunes" a tree returning all values that match the predicate function.
-
-<br />
-
-#### Each
-
-```js
-doc.each(proc: (item: StreamItem) => any) => JFInstance
-```
-
-Similar to `Array.forEach`, applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
-
-<br />
-
-#### Find
-
-```js
-doc.find(predicate: (item: StreamItem) => boolean) => any
-```
-
-Similar to `Array.find`, returns the first value that matches the predicate or `undefined`.
-
-<br />
-
-#### Find All
-
-```js
-doc.findAll(predicate: (item: StreamItem) => boolean) => StreamItem[]
-```
-
+#### selectAll
 Returns an array of stream items that match the given predicate.
 
-<br />
-
-#### Smoosh
-
-```js
-doc.smoosh() => JFInstance
-```
-
+#### smoosh
 Completely flattens an object to a single of Object of `{...string<JFPath>: any }`.
 
-<br />
-
-#### Toggle
-
-```js
-doc.toggle() => JFInstance
-```
-
+#### toggle
 Toggles the root object between Object and Array. Toggling Object->Array creates `[...[string<key>, any]]` and Array->Object creates `{...number: any}`.
 
+#### toStream
+Exposes the breadth-first stream.
+
+---
+
+### JSON Path
+
+A Path is a convenience wrapper to abstract the swapping of path strings and arrays and path navigation.
+
+```js
+JsonPath = {
+    toString() => string
+
+    toArray() => Array,
+
+    join(delimiter?: string) => string,
+
+    clone() => JsonPath,
+
+    slice(from?: number, to?: number) => JsonPath,
+
+    append(key: string | number) => JsonPath
+}
+```
+
+#### toString
+Returns the current path array as a string separated by the current delimiter.
+
+#### toArray
+Return the current path array.
+
+#### join
+By default `path.join` calls `path.toString`. if a string argument is provided, it will join the current path array by the given string.
+
+#### clone
+Creates a clone using the current path array and delimiter.
+
+#### slice
+Mimics `Array.slice` & `String.slice`. Returns a new path instance based on the selection of `from` and `to`.
+
+#### append
+Mutates the current instance by appending a key at the end of the current path. Returns the instance.
+
+---
+
+### Breadth First Stream
+JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
+
+```js
+StreamItem = Object<{
+    path: JsonPath,
+    key: string,
+    value: null | boolean | number | string
+}>
+
+BFStream = {
+    private setQueue(path: JsonPath, key: string[]) => BFStream,
+
+    empty() => boolean,
+
+    next() => StreamItem
+}
+```
+
+#### setQueue
+Loads the internal queue by unique paths for each key.
+
+#### empty
+Returns `true` if the queue is empty.
+
+#### next
+Advances to the next key:value pair within an object.
+
+<br />
 <br />
 
 <!-- CONTRIBUTING -->
