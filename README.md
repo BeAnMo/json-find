@@ -191,9 +191,9 @@ Options:
 
 ```js
     /* CommonJS */
-    const JsonFind = require('json-find');
-    /* ES6 */
-    import JsonFind from 'json-find';
+    const JsonFind = require('json-find/dist/json-find.node');
+    /* ES6, production version */
+    import JsonFind from 'json-find/dist/json-find.node.min';
     /* Available as JsonFind when using a script tag */
 
     const test = {
