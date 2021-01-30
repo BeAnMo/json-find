@@ -125,7 +125,7 @@ function BFStream(doc, delimeter) {
 BFStream.prototype.setQueue = function (path, keys) {
     keys.forEach(key => {
         const keyPath = path.clone().append(key);
-    
+
         this.q.push(keyPath);
     });
 
@@ -133,8 +133,12 @@ BFStream.prototype.setQueue = function (path, keys) {
 };
 
 BFStream.prototype.next = function () {
-    // handle an empty path
     const path = this.q.shift();
+
+    if (!path) {
+        return null;
+    }
+
     const value = getAtPath(this.doc, path.toArray());
 
     if (!isCompound(value)) {
@@ -161,6 +165,8 @@ BFStream.prototype.empty = function () {
 function Doc(doc, options = {}) {
     if (!isCompound(doc)) {
         throw new Error(`Instantiating JsonFind requires an Object or an Array.`);
+    } else if (!this instanceof Doc) {
+        return new Doc(doc, options);
     }
 
     this.options = {
@@ -246,12 +252,12 @@ Doc.prototype.prune = function (predicate) {
     return results;
 };
 
-Doc.prototype.smoosh = function(){
+Doc.prototype.smoosh = function () {
     const stream = new BFStream(this.doc, this.options.delimeter);
     const results = {};
 
     while (!stream.empty()) {
-        const { path, value} = stream.next();
+        const { path, value } = stream.next();
 
         results[path.toString()] = value;
     }

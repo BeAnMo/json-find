@@ -1,5 +1,5 @@
 import BFStream from './bf-stream';
-import JsonPath from './json-path'
+import JsonPath from './json-path';
 import Doc from './doc';
 
 describe('A breadth-first stream instance', () => {
@@ -40,9 +40,19 @@ describe('A breadth-first stream instance', () => {
         while (!s0.empty()) {
             const actual = s0.next();
             const expected = values[i];
-            
+
             expect(actual).toStrictEqual(expected);
             i++;
         }
+    });
+
+    it('should return null when the stream has ended', () => {
+        const stream = new BFStream(d0, '.');
+
+        for (let i = 0; i < 6; i++) {
+            stream.next();
+        }
+
+        expect(stream.next()).toBe(null);
     });
 });

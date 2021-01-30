@@ -8,6 +8,8 @@ import { splitPath, isCompound, getAtPath, setAtPath, isArray } from './utils';
 function Doc(doc, options = {}) {
     if (!isCompound(doc)) {
         throw new Error(`Instantiating JsonFind requires an Object or an Array.`);
+    } else if (!this instanceof Doc) {
+        return new Doc(doc, options);
     }
 
     this.options = {
@@ -93,18 +95,18 @@ Doc.prototype.prune = function (predicate) {
     return results;
 };
 
-Doc.prototype.smoosh = function(){
+Doc.prototype.smoosh = function () {
     const stream = new BFStream(this.doc, this.options.delimeter);
-    const results = {}
+    const results = {};
 
     while (!stream.empty()) {
-        const { path, value} = stream.next();
+        const { path, value } = stream.next();
 
         results[path.toString()] = value;
     }
 
     return new Doc(results, this.options);
-}
+};
 
 Doc.prototype.toggle = function () {
     let converted = this.doc;
