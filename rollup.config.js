@@ -6,11 +6,13 @@ export default {
         {
             file: 'dist/json-find.node.js',
             format: 'cjs',
+            exports: 'auto'
         },
         {
             file: 'dist/json-find.node.min.js',
             format: 'cjs',
-            plugins: [terser()]
+            plugins: [terser()],
+            exports: 'auto'
         },
         {
             file: 'dist/json-find.browser.js',

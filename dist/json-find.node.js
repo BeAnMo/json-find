@@ -89,6 +89,15 @@ JsonPath.prototype.toArray = function () {
     return this.path;
 };
 
+JsonPath.prototype.join = function (alternateDelim) {
+    if (alternateDelim !== undefined) {
+        return this.path.join(alternateDelim);
+    } else {
+        return this.toString();
+    }
+};
+
+
 JsonPath.prototype.clone = function () {
     return new JsonPath([...this.path], this.delimiter);
 };
@@ -99,12 +108,6 @@ JsonPath.prototype.slice = function (from, to) {
 
 JsonPath.prototype.append = function (key) {
     this.path.push(key);
-
-    return this;
-};
-
-JsonPath.prototype.setDelimeter = function (newDelim) {
-    this.delimiter = newDelim;
 
     return this;
 };
@@ -130,6 +133,7 @@ BFStream.prototype.setQueue = function (path, keys) {
 };
 
 BFStream.prototype.next = function () {
+    // handle an empty path
     const path = this.q.shift();
     const value = getAtPath(this.doc, path.toArray());
 
@@ -242,6 +246,19 @@ Doc.prototype.prune = function (predicate) {
     return results;
 };
 
+Doc.prototype.smoosh = function(){
+    const stream = new BFStream(this.doc, this.options.delimeter);
+    const results = {};
+
+    while (!stream.empty()) {
+        const { path, value} = stream.next();
+
+        results[path.toString()] = value;
+    }
+
+    return new Doc(results, this.options);
+};
+
 Doc.prototype.toggle = function () {
     let converted = this.doc;
 
@@ -270,7 +287,7 @@ Doc.getBase = function (doc) {
 Doc.clone = function (doc, options) {
     const delim = options && options.delimeter || '.';
     const stream = new BFStream(doc, delim);
-    let results = Doc.getBase(doc);
+    const results = Doc.getBase(doc);
 
     while (!stream.empty()) {
         const current = stream.next();
