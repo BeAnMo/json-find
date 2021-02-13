@@ -185,8 +185,6 @@ InstanceInterface = {
 
     select(predicate: (item: StreamItem) => boolean) => any,
 
-    selectAll(predicate: (item: StreamItem) => boolean) => StreamItem[],
-
     smoosh() => JsonFindInstance,
 
     toggle() => JsonFindInstance,
@@ -325,7 +323,6 @@ InstanceInterface = {
 - **next**
     - Advances to the next key:value pair within an object.
 
-<br />
 <br />
 
 <!-- CONTRIBUTING -->
