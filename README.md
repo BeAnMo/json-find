@@ -247,7 +247,7 @@ The callbacks for all iterative instance methods bind the current instance to `t
     - Returns the first value that matches the predicate or `undefined`.
 - **smoosh**
     - Completely flattens an object to a single of Object of `{...string<JFPath>: any }`.
-- **toggle(())
+- **toggle**
     - Toggles the root object between Object and Array. Toggling Object->Array creates `[...[string<key>, any]]` and Array->Object creates `{...number: any}`.
 - **toStream**
     - Exposes the breadth-first stream.
