@@ -105,36 +105,41 @@ Imagine your projectct needs to extract the text & scores from reddit comments. 
 JsonFind does that work with a couple of chained method calls.
 
 ```js
-await fetch(REDDIT_COMMENTS_URL + '.json')
+await fetch(`${REDDIT_COMMENTS_URL}.json`)
 	.then(r => r.json())
 	.then(json => {
         const rows = new JsonFind(json)
-            // Prunes the comment tree for the specified keys.
+            // 1
             .prune(({ key }) => 'author score created body'.includes(key))
-            // Folds the pruned tree into a flattened Object of:
-            // { ...key: { created, score, body, author } }
+            // 2
             .fold((acc, { path, key, value }) => {
                 const root = path
-                     // Moves up one from the current path to get the necessary root path.
+                    // 3
                     .slice(0, -1)
-                    // The delimeter is replaced to allow using the whole root path
-                    // as a single Object key.
+                    // 4
                     .join('/');
-                // Update and return the accumulator Object:
-                // {...<path/to/object>: {...<key>: value } }
+                // 5
                 return acc.set(`${root}.${key}`, value);
             }, new JsonFind({}))
-            // Converts the flattened tree into an array of [...[key, { created, score, body, author }]]
+            // 6
             .toggle()
-            // Returns the current document.
+            // 7
             .get()
-            // Can now use native Array methods for further processing.
+            // 8
             .map(([key, values]) => values);
 
         console.table(rows);
     })
 	.catch(console.error);
 ```
+1. Prunes the comment tree for the specified keys. Keep in mind that just like an Array.filter.reduce chain, the pruning for Doc.prune.fold can be done entirely within the fold operation. Separating `prune` and `fold` simply makes it easier to swap out operations when changes are required.
+2. Folds the pruned tree into a flattened Object of `{ ...key: { created, score, body, author } }`.
+3. Moves up one from the current path to get the necessary root path (think `$ cd ..`).
+4. The delimeter is replaced to allow using the whole root path as a single Object key. This prevents the recreation of the original shape by flattening the whole tree (`nested.path.to.key` becomes `nested/path/to.key`).
+5. Update and return the accumulator Object `{...<path/to/object>: {...<key>: value } }`.
+6. Converts the flattened tree into an array of `[...[key, { created, score, body, author }]]`.
+7. Returns the current document.
+8. Can now use native Array methods for further processing.
 
 ## Documentation
 
@@ -152,32 +157,39 @@ await fetch(REDDIT_COMMENTS_URL + '.json')
 #### Instantiation
 
 ```js
-JsonFind(doc: Object | Array, options?: Object) => JsonDocument
+JsonFindInstance = JsonFind(doc: Object | Array, options?: Object)
 
-ValidPath = JsonPath | string | string[]
+ValidPath = JsonPathInstance | string | string[]
 
-JsonDocument = {
+StreamItem = Object<{
+    path: JsonPathInstance,
+    key: string,
+    value: null | boolean | number | string
+}>
+
+
+InstanceInterface = {
     static clone(Object | Array) => Object | Array,
 
-    get(path?: ValidPath, options?: { useConstructor: false }) => JsonDocument | Object | Array,
+    get(path?: ValidPath, options?: { useConstructor: false }) => JsonFindInstance | Object | Array,
 
-    set(path: ValidPath, value: any) => JsonDocument,
+    set(path: ValidPath, value: any) => JsonFindInstance,
 
     fold(proc: (accumulator: any, item: StreamItem) => any, accumulator: any) => any,
 
-    transform(proc: (item: StreamItem) => any) => JsonDocument,
+    transform(proc: (item: StreamItem) => any) => JsonFindInstance,
 
-    prune(predicate: (item: StreamItem) => boolean) => JsonDocument,
+    prune(predicate: (item: StreamItem) => boolean) => JsonFindInstance,
 
-    each(proc: (item: StreamItem) => any) => JsonDocument,
+    each(proc: (item: StreamItem) => any) => JsonFindInstance,
 
     select(predicate: (item: StreamItem) => boolean) => any,
 
     selectAll(predicate: (item: StreamItem) => boolean) => StreamItem[],
 
-    smoosh() => JsonDocument,
+    smoosh() => JsonFindInstance,
 
-    toggle() => JsonDocument,
+    toggle() => JsonFindInstance,
 
     toStream() => BFSteamInstance
 }
@@ -259,18 +271,20 @@ The callbacks for all iterative instance methods bind the current instance to `t
 A Path is a convenience wrapper to abstract the swapping of path strings and arrays and path navigation.
 
 ```js
-JsonPath = {
+JsonPathInstance = new JsonPath(string | string[], delimeter: string)
+
+InstanceInterface = {
     toString() => string
 
     toArray() => Array,
 
     join(delimiter?: string) => string,
 
-    clone() => JsonPath,
+    clone() => JsonPathInstance,
 
-    slice(from?: number, to?: number) => JsonPath,
+    slice(from?: number, to?: number) => JsonPathInstance,
 
-    append(key: string | number) => JsonPath
+    append(key: string | number) => JsonPathInstance
 }
 ```
 
@@ -293,14 +307,10 @@ JsonPath = {
 JsonFind uses a breadth-first stream of primitives under the hood. The algorithm will always emit primitive values instead of their encompassing Objects/Arrays. Array indexes are cast as strings.
 
 ```js
-StreamItem = Object<{
-    path: JsonPath,
-    key: string,
-    value: null | boolean | number | string
-}>
+BFStreamInstance = new BFStream(Object | Array, delimeter: string)
 
-BFStream = {
-    private setQueue(path: JsonPath, key: string[]) => BFStream,
+InstanceInterface = {
+    private setQueue(path: JsonPath, key: string[]) => BFStreamInstance,
 
     empty() => boolean,
 
