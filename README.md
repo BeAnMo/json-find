@@ -213,17 +213,13 @@ If passed invalid JSON, JsonData will throw an error. If passed a Number/String/
 
 A document instance wraps the given object. For testing/debugging, consider deep-cloning an object before passing it to the constructor to prevent unwanted mutations.
 
+- **clone**
+    - Performs a deep clone of the given object.
+- **get**
+    - If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned. When no `path` is provided or if `path` is and empty string (`""`), the current object is returned.
 
-#### clone
-Performs a deep clone of the given object.
-
-#### get
-If `useConstructor` is `true` and the value at the given path is an Object or Array, a new JsonFind instance wrapping the retrieved value is returned. Otherwise, just the raw value is returned.
-
-When no `path` is provided or if `path` is and empty string (`""`), the current object is returned.
-
-#### set
-Mutates the JsonFind instance at the given path with a value and returns the instance.
+- **set**
+    - Mutates the JsonFind instance at the given path with a value and returns the instance.
 
 ### Iterating
 
@@ -239,32 +235,22 @@ Part of the goal of Json-Find is to give users an interface comparable to native
 
 The callbacks for all iterative instance methods bind the current instance to `this`.
 
-#### fold
-Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
-
-#### transform
-Maps a procedure to each value in a doc.
-
-#### prune
-"Prunes" a tree returning all values that match the predicate function but maintains the shape of the original document. This may return sparse arrays.
-
-#### each
-Applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
-
-#### select
-Returns the first value that matches the predicate or `undefined`.
-
-#### selectAll
-Returns an array of stream items that match the given predicate.
-
-#### smoosh
-Completely flattens an object to a single of Object of `{...string<JFPath>: any }`.
-
-#### toggle
-Toggles the root object between Object and Array. Toggling Object->Array creates `[...[string<key>, any]]` and Array->Object creates `{...number: any}`.
-
-#### toStream
-Exposes the breadth-first stream.
+- **fold**
+    - Object keys are assumed to be unordered, which means there is no `Array.reduceRight` equivalent.
+- **transform**
+    - Maps a procedure to each value in a doc.
+- **prune**
+    - "Prunes" a tree returning all values that match the predicate function but maintains the shape of the original document. This may return sparse arrays.
+- **each**
+    - Applies the given procedure to each value but does not return a result, but instead returns the instance to allow for chaining.
+- **select**
+    - Returns the first value that matches the predicate or `undefined`.
+- **smoosh**
+    - Completely flattens an object to a single of Object of `{...string<JFPath>: any }`.
+- **toggle(())
+    - Toggles the root object between Object and Array. Toggling Object->Array creates `[...[string<key>, any]]` and Array->Object creates `{...number: any}`.
+- **toStream**
+    - Exposes the breadth-first stream.
 
 ---
 
@@ -288,23 +274,18 @@ JsonPath = {
 }
 ```
 
-#### toString
-Returns the current path array as a string separated by the current delimiter.
-
-#### toArray
-Return the current path array.
-
-#### join
-By default `path.join` calls `path.toString`. if a string argument is provided, it will join the current path array by the given string.
-
-#### clone
-Creates a clone using the current path array and delimiter.
-
-#### slice
-Mimics `Array.slice` & `String.slice`. Returns a new path instance based on the selection of `from` and `to`.
-
-#### append
-Mutates the current instance by appending a key at the end of the current path. Returns the instance.
+- **toString**
+    - Returns the current path array as a string separated by the current delimiter.
+- **toArray**
+    - Return the current path array.
+- **join**
+    - With no argument provided, `path.join` calls `path.toString`. if a string argument is provided, it will join the current path array by the given string.
+- **clone**
+    - Creates a clone using the current path array and delimiter.
+- **slice**
+    - Mimics `Array.slice` & `String.slice`. Returns a new path instance based on the selection of `from` and `to`.
+- **append**
+    - Mutates the current instance by appending a key at the end of the current path. Returns the instance.
 
 ---
 
@@ -327,14 +308,12 @@ BFStream = {
 }
 ```
 
-#### setQueue
-Loads the internal queue by unique paths for each key.
-
-#### empty
-Returns `true` if the queue is empty.
-
-#### next
-Advances to the next key:value pair within an object.
+- **setQueue**
+    - Loads the internal queue by unique paths for each key.
+- **empty**
+    - Returns `true` if the queue is empty.
+- **next**
+    - Advances to the next key:value pair within an object.
 
 <br />
 <br />
