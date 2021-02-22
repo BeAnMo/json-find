@@ -12,11 +12,15 @@ function BFStream(doc, delimeter) {
 }
 
 BFStream.prototype.setQueue = function (path, keys) {
-    keys.forEach(key => {
-        const keyPath = path.clone().append(key);
+    let i = 0;
+
+    while (keys[i] !== undefined) {
+        const keyPath = path.clone().append(keys[i]);
 
         this.q.push(keyPath);
-    });
+
+        i += 1;
+    }
 
     return this;
 };
