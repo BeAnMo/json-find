@@ -7,6 +7,16 @@ describe('Json-document instantiation', () => {
         expect(() => Doc(null)).toThrow();
         expect(() => Doc(true)).toThrow();
     });
+
+    it('should instantiate with & without "new"', () => {
+        const d0 = Doc({ a: 1, b: 2 });
+
+        expect(d0).toBeInstanceOf(Doc);
+
+        const d1 = new Doc({ a: 1, b: 2 });
+
+        expect(d1).toBeInstanceOf(Doc);
+    });
 });
 
 describe('Json-document static methods', () => {
@@ -20,6 +30,28 @@ describe('Json-document static methods', () => {
         const base = [1, 2, { c: [3, 4, 5] }];
 
         expect(Doc.clone(base)).toStrictEqual([1, 2, { c: [3, 4, 5] }]);
+    });
+
+    it('should return a schema based on primitive values', () => {
+        const doc = {
+            a: 1,
+            b: 'hello',
+            c: [{ value: 4 }, { value: '5' }, { value: 6 }]
+        };
+        const fullSchema = {
+            a: 'number',
+            b: 'string',
+            c: [{ value: 'number' }, { value: 'string' }, { value: 'number' }]
+        };
+        // TODO
+        const firstOnlySchema = {
+            a: 'number',
+            b: 'string',
+            c: [{ value: 'number' }]
+        };
+
+        expect(Doc.schema(doc)).toStrictEqual(fullSchema);
+        //expect(Doc.schema(doc, { firstArrayElementOnly: true })).toStrictEqual(firstOnlySchema);
     });
 });
 

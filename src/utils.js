@@ -100,3 +100,11 @@ export function objToArr(obj) {
         .keys(obj)
         .map(k => [k, obj[k]]);
 }
+
+export function getType(val) {
+    if (val === null) {
+        return 'null';
+    } else {
+        return typeof (val);
+    }
+}

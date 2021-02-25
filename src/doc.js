@@ -1,5 +1,5 @@
 import BFStream from './bf-stream';
-import { splitPath, isCompound, getAtPath, setAtPath, isArray } from './utils';
+import { splitPath, isCompound, getAtPath, setAtPath, isArray, getType } from './utils';
 
 /**
  * @param {Object | Array} doc 
@@ -8,7 +8,7 @@ import { splitPath, isCompound, getAtPath, setAtPath, isArray } from './utils';
 function Doc(doc, options = {}) {
     if (!isCompound(doc)) {
         throw new Error(`Instantiating JsonFind requires an Object or an Array.`);
-    } else if (!this instanceof Doc) {
+    } else if (!(this instanceof Doc)) {
         return new Doc(doc, options);
     }
 
@@ -143,6 +143,21 @@ Doc.clone = function (doc, options) {
 
         setAtPath(results, current.path.toArray(), current.value);
     }
+
+    return results;
+};
+
+Doc.schema = function (doc, options = {}) {
+    const stream = new BFStream(doc, options.delimeter || '.');
+
+    let results = Doc.getBase(doc);
+
+    while (!stream.empty()) {
+        const { path, key, value } = stream.next();
+
+        setAtPath(results, path.toArray(), getType(value));
+    }
+
 
     return results;
 };

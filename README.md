@@ -231,6 +231,9 @@ A document instance wraps the given object. For testing/debugging, consider deep
 - **set**
     - Mutates the JsonFind instance at the given path with a value and returns the instance.
 
+- **schema**
+    - Replaces the primitive values of an object with strings denoting the type ("string", "number", "boolean", "null").
+
 ### Iterating
 
 Part of the goal of Json-Find is to give users an interface comparable to native Array methods, providing a concise, chainable API. Rather than copy Array method names, Json-Find uses alternates to ensure a user can bounce between Json-Find and Array methods without confusion.
